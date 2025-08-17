@@ -1,12 +1,12 @@
-# Py_channel_Async
+# PY_CHANNELS_ASYNC
 
-\_An async-native python channel implementation.
+_An async-native python channel implementation._
 
-Providing a non blocking, coroutine friendly way for tasks to communicate and synchronize.
+_Providing a non blocking, coroutine friendly way for tasks to communicate and synchronize._
 
-Exposes APIs to facilitate concurrent task communication through message passing
-like channels in Go.
+_Exposes APIs to facilitate concurrent task communication through message passing
+like channels in Go._
 
-Works seamlessly with existing async await concurrency model in python (using asyncio).
+_Works seamlessly with existing async await concurrency model in python (using asyncio)._
 
-Pipeline to stream data in a producer consumer pattern \_
+_Pipeline to stream data in a producer consumer pattern_
