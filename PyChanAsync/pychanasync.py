@@ -1,39 +1,9 @@
 import asyncio
 import collections
 from asyncio import Future
-from types import coroutine
-from typing import Any, Self
+from typing import Any
 
-
-class ChanError(Exception):
-    """
-    Base exception class for Channel class. Represnt all Channel
-    related exceptions. Catching this is catching all exceptions thrown by a
-    channel.
-    """
-
-    pass
-
-
-class ChannelClosed(Exception):
-    """
-    ChannelClosed Exception thrown when a channel has been closed(usually by a producer)
-    """
-
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        self.which_chan: object = kwargs.pop("which_chan")
-        super(ChannelClosed, self).__init__(*args, **kwargs)
-
-
-class ChannelFull(Exception):
-    """
-    ChannelFull  exception  thrown when a channel(in this case buffered) is full, and
-    producer does not want to wait.
-    """
-
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        self.which_chan: object = kwargs.pop("which_chan")
-        super(ChannelFull, self).__init__(*args, **kwargs)
+from PyChanAsync.errors import ChanError
 
 
 class Channel:
@@ -64,29 +34,27 @@ class Channel:
         self.ready_receivers: collections.deque[Future[Any]] = collections.deque()
         self.ready_producers: collections.deque[Future[Any]] = collections.deque()
 
-        async def push(self: Self, value: Any) -> Future[Any] | None:
-            """
-            Pushes an item into the channel
+    async def push(self, value: Any) -> Future[Any] | None:
+        """
+        Pushes an item into the channel
 
-            If channel is unbuffered, `push` willr return immediately if a ready receiver is avaible.
-            Otherwise it will block and wait for one.
+        If channel is unbuffered, `push` willr return immediately if a ready receiver is avaible.
+        Otherwise it will block and wait for one.
 
-            :param value: The item to push into the channel
+        :param value: The item to push into the channel
 
+        """
 
-            """
+        if self.bound is None:
+            if self.ready_receivers:
+                ready_receiver: Future[Any] = self.ready_receivers.popleft()
+                ready_receiver.set_result(value)
 
-            if bound is None:
-                if self.ready_receivers:
-                    ready_receiver: Future[Any] = self.ready_receivers.popleft()
-                    ready_receiver.set_result(value)
+            else:
+                ready_producer: Future[Any] = asyncio.Future()
+                self.ready_producers.append(ready_producer)
+                return ready_producer
 
-                else:
-                    ready_producer: Future[Any] = asyncio.Future()
-                    self.ready_producers.append(ready_producer)
-                    return ready_producer
-
-        async def pull():
-            pass
-
-    pass
+    async def pull(self):
+        self.ready_producers
+        pass
