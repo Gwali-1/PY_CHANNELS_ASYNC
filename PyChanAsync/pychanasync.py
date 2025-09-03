@@ -1,6 +1,7 @@
 import asyncio
 import collections
 from asyncio import Future
+from ctypes import set_errno
 from typing import Any
 
 from PyChanAsync.errors import ChanError
@@ -32,13 +33,15 @@ class Channel:
         self.closed: bool = False
         # self.ready_receivers: deque[Future[Any]] = deque()
         self.ready_receivers: collections.deque[Future[Any]] = collections.deque()
-        self.ready_producers: collections.deque[Future[Any]] = collections.deque()
+        self.ready_producers: collections.deque[tuple[Any, Future[Any]]] = (
+            collections.deque()
+        )
 
     async def push(self, value: Any) -> Future[Any] | None:
         """
         Pushes an item into the channel
 
-        If channel is unbuffered, `push` willr return immediately if a ready receiver is avaible.
+        If channel is unbuffered, `push` will return immediately if a ready receiver is available.
         Otherwise it will block and wait for one.
 
         :param value: The item to push into the channel
@@ -46,15 +49,26 @@ class Channel:
         """
 
         if self.bound is None:
+            # unbuffered
             if self.ready_receivers:
                 ready_receiver: Future[Any] = self.ready_receivers.popleft()
                 ready_receiver.set_result(value)
 
             else:
                 ready_producer: Future[Any] = asyncio.Future()
-                self.ready_producers.append(ready_producer)
+                self.ready_producers.append((value, ready_producer))
                 return ready_producer
 
-    async def pull(self):
-        self.ready_producers
-        pass
+    async def pull(self) -> None | Any:
+
+        # unbuffered
+        if self.bound is not None:
+            if self.ready_producers:
+                ready_producer: tuple[Any, Future[Any]] = self.ready_producers.popleft()
+                producer: Future[Any] = ready_producer[1]
+                producer.set_result(None)
+                return ready_producer[0]
+            else:
+                ready_receiver: Future[Any] = asyncio.Future()
+                self.ready_receivers.append(ready_receiver)
+                return ready_receiver

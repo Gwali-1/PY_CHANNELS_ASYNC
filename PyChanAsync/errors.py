@@ -1,6 +1,6 @@
 class ChanError(Exception):
     """
-    Base exception class for Channel class. Represnt all Channel
+    Base exception class for Channel class. Represents all Channel
     related exceptions. Catching this is catching all exceptions thrown by a
     channel.
     """
@@ -15,7 +15,7 @@ class ChannelClosed(Exception):
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         self.which_chan: object = kwargs.pop("which_chan")
-        super(ChannelClosed, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ChannelFull(Exception):
@@ -26,4 +26,4 @@ class ChannelFull(Exception):
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         self.which_chan: object = kwargs.pop("which_chan")
-        super(ChannelFull, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
