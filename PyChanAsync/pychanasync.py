@@ -7,6 +7,12 @@ from typing import Any
 from PyChanAsync.errors import ChanError
 
 
+class ProducerComponent:
+    def __init__(self, producer: Future[Any], value: Any):
+        self.producer = producer
+        self.value = value
+
+
 class Channel:
     """
     A channel instance provides a pipeline to stream data between  conccurent tasks scheduled
@@ -33,9 +39,7 @@ class Channel:
         self.closed: bool = False
         # self.ready_receivers: deque[Future[Any]] = deque()
         self.ready_receivers: collections.deque[Future[Any]] = collections.deque()
-        self.ready_producers: collections.deque[tuple[Any, Future[Any]]] = (
-            collections.deque()
-        )
+        self.ready_producers: collections.deque[ProducerComponent] = collections.deque()
 
     async def push(self, value: Any) -> Future[Any] | None:
         """
@@ -56,7 +60,9 @@ class Channel:
 
             else:
                 ready_producer: Future[Any] = asyncio.Future()
-                self.ready_producers.append((value, ready_producer))
+                new_producer = ProducerComponent(ready_producer, value)
+
+                self.ready_producers.append(new_producer)
                 return ready_producer
 
     async def pull(self) -> None | Any:
@@ -64,10 +70,10 @@ class Channel:
         # unbuffered
         if self.bound is not None:
             if self.ready_producers:
-                ready_producer: tuple[Any, Future[Any]] = self.ready_producers.popleft()
-                producer: Future[Any] = ready_producer[1]
-                producer.set_result(None)
-                return ready_producer[0]
+                producer_component: ProducerComponent = self.ready_producers.popleft()
+                ready_producer: Future[Any] = producer_component.producer
+                ready_producer.set_result(None)
+                return producer_component.value
             else:
                 ready_receiver: Future[Any] = asyncio.Future()
                 self.ready_receivers.append(ready_receiver)
