@@ -36,6 +36,8 @@ class Channel:
             raise ChanError("Channel bound must be > 0")
 
         self.bound: int | None = bound
+        if self.bound is not None:  # avoid buffer allocation entirely if not needed
+            self.buffer: collections.deque[Any] = collections.deque(maxlen=bound)
         self.closed: bool = False
         # self.ready_receivers: deque[Future[Any]] = deque()
         self.ready_receivers: collections.deque[Future[Any]] = collections.deque()
@@ -64,6 +66,7 @@ class Channel:
 
                 self.ready_producers.append(new_producer)
                 return await ready_producer
+        # buffered implementation
 
     async def pull(self) -> None | Any:
 
@@ -78,3 +81,5 @@ class Channel:
                 ready_receiver: Future[Any] = asyncio.Future()
                 self.ready_receivers.append(ready_receiver)
                 return await ready_receiver
+
+        # buffered implementation
