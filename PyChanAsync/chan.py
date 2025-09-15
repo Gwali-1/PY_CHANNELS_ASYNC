@@ -2,9 +2,6 @@ import asyncio
 from asyncio.locks import Lock
 import collections
 from asyncio import Future
-from ctypes import set_errno
-from itertools import chain
-import re
 from typing import Any
 
 from pychanasync.errors import ChanError, ChannelClosed
@@ -77,49 +74,40 @@ class Channel:
         """
 
         # check if channel is closed
-        awaitable_future: Future[Any] | None = None
 
-        async with self.lock:
+        if self.closed:
+            raise ChannelClosed
 
-            if self.closed:
-                raise ChannelClosed
+        if self.bound is None:
+            # unbuffered
+            if self.ready_receivers:
+                ready_receiver: Future[Any] = self.ready_receivers.popleft()
+                ready_receiver.set_result(value)
+                return
 
-            if self.bound is None:
-                # unbuffered
-                if self.ready_receivers:
-                    ready_receiver: Future[Any] = self.ready_receivers.popleft()
-                    ready_receiver.set_result(value)
-                    return
-
-                else:
-                    ready_producer: Future[Any] = asyncio.Future()
-                    new_producer = ProducerComponent(ready_producer, value)
-                    self.ready_producers.append(new_producer)
-                    awaitable_future = ready_producer
-                    # return await ready_producer
             else:
-                # buffered
-                # if buffered channel and there are pending receivers
-                if self.ready_receivers:
-                    ready_receiver_buff: Future[Any] = self.ready_receivers.popleft()
-                    ready_receiver_buff.set_result(value)
-                    return
-
-                # if there is space
-                if (
-                    len(self.buffer) < self.bound
-                ):  # pyright: ignore[reportOperatorIssue]
-                    self.buffer.append(value)
-                    return
-
-                # if there is no space in the buffer producer will wait
-                ready_producer_buffered: Future[Any] = asyncio.Future()
-                new_producer = ProducerComponent(ready_producer_buffered, value)
+                ready_producer: Future[Any] = asyncio.Future()
+                new_producer = ProducerComponent(ready_producer, value)
                 self.ready_producers.append(new_producer)
-                awaitable_future = ready_producer_buffered
-                # return await ready_producer_buffered
-                #
-            return await awaitable_future
+                return await ready_producer
+
+        # buffered
+        # if buffered channel and there are pending receivers
+        if self.ready_receivers:
+            ready_receiver_buff: Future[Any] = self.ready_receivers.popleft()
+            ready_receiver_buff.set_result(value)
+            return
+
+        # if there is space
+        if len(self.buffer) < self.bound:  # pyright: ignore[reportOperatorIssue]
+            self.buffer.append(value)
+            return
+
+        # if there is no space in the buffer producer will wait
+        ready_producer_buffered: Future[Any] = asyncio.Future()
+        new_producer = ProducerComponent(ready_producer_buffered, value)
+        self.ready_producers.append(new_producer)
+        return await ready_producer_buffered
 
     async def pull(self) -> None | Any:
 
@@ -158,12 +146,33 @@ class Channel:
 
     def close(self) -> None:
 
+        # close channel
         self.closed = True
-        # tell all waiting producers
+
+        # tell all waiting producers channel is closed
         for p in self.ready_producers:
             waiting_producer: Future[Any] = p.producer
             waiting_producer.set_exception(ChannelClosed)
 
-        # tell all waiting receivers
+        waiting_recievers_to_satisfy: list[Any] = []
+        # for buffered channels drain the buffer for all waiting receivers
+        if self.bound:
+            while self.buffer and self.ready_receivers:
+                waiting_recievers_to_satisfy.append(
+                    (self.ready_receivers.popleft(), self.buffer.popleft())
+                )
+            leftover_receivers = self.ready_receivers
+            self.ready_receivers.clear()
+
+            # give waiting receivers items
+            for receiver, item in waiting_recievers_to_satisfy:
+                receiver.set_result(item)
+
+            # give left over recievers exceptions
+            for receiver in leftover_receivers:
+                receiver.set_exception(ChannelClosed)
+            return
+
+        # for unbuffered channels , no draining -- just give exceptions
         for r in self.ready_receivers:
             r.set_exception(ChannelClosed)
