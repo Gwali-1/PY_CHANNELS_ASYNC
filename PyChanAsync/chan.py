@@ -1,28 +1,15 @@
 import asyncio
-from asyncio.locks import Lock
 import collections
 from asyncio import Future
 from typing import Any
 
 from pychanasync.errors import ChanError, ChannelClosed
 
-
 # # --- Context manager ---
 # async def __aenter__(self):
 #     return self
 #
 # async def __aexit__(self, exc_type, exc, tb):
-#     self.close()
-#
-# # --- Async iteration ---
-# def __aiter__(self):
-#     return self
-#
-# async def __anext__(self):
-#     try:
-#         return await self.recv()
-#     except ChannelClosed:
-#         raise StopAsyncIteration
 
 
 class ProducerComponent:
@@ -57,26 +44,31 @@ class Channel:
         if self.bound is not None:  # avoid buffer allocation entirely if not needed
             self.buffer: collections.deque[Any] = collections.deque(maxlen=bound)
         self.closed: bool = False
-        self.lock: Lock = asyncio.Lock()
         # self.ready_receivers: deque[Future[Any]] = deque()
         self.ready_receivers: collections.deque[Future[Any]] = collections.deque()
         self.ready_producers: collections.deque[ProducerComponent] = collections.deque()
 
+    def __repr__(self) -> str:
+        return f"<Chan 0x{id(self):X}>"
+
     async def push(self, value: Any) -> Future[Any] | None:
         """
-        Pushes an item into the channel
+        pushes an item into the channel
 
-        If channel is unbuffered, `push` will return immediately if a ready receiver is available.
-        Otherwise it will block and wait for one.
+        if channel is unbuffered, `push` will return immediately if a ready receiver is available.
+        otherwise it will block and wait for one.
 
-        :param value: The item to push into the channel
+        if channel is buffered, `push` will put item in the channel and return immediately if there is space
+        in buffer. otherwise it will  block and wait until there is space.
+
+        :param value: the item to push into the channel
 
         """
 
         # check if channel is closed
 
         if self.closed:
-            raise ChannelClosed
+            raise ChannelClosed(which_chan=self)
 
         if self.bound is None:
             # unbuffered
@@ -110,9 +102,18 @@ class Channel:
         return await ready_producer_buffered
 
     async def pull(self) -> None | Any:
+        """
+        Pulls an item from the channel
 
+        If channel is unbuffered, `pull` will return with an immediately if a ready producer is available.
+        Otherwise it will block and wait for one.
+
+        If channel is buffered, `pull` will return an tem from the channel immediately if the buffer is not empty
+        . Otherwise it will  block and wait until there is items in te channel.
+
+        """
         if self.closed:
-            raise ChannelClosed
+            raise ChannelClosed(which_chan=self)
 
         # unbuffered
         if self.bound is None:
@@ -145,34 +146,126 @@ class Channel:
         return await ready_receiver_buff
 
     def close(self) -> None:
+        """
+        Closes the channel.
+
+        All in flight producers are terminated with a `ChannelClosed` exception.
+
+        In-flight receivers in a unbuffered channels are terminated as well but for a buffered channel, the buffer is
+        drained , giving waiting receivers avaible items. All leftover receivers after that are terminated with are
+        `ChannelClosed` exception.
+
+        """
 
         # close channel
         self.closed = True
 
+        print(f"closing the channel  {self.ready_receivers=} {self.buffer=}")
+
         # tell all waiting producers channel is closed
         for p in self.ready_producers:
             waiting_producer: Future[Any] = p.producer
-            waiting_producer.set_exception(ChannelClosed)
+            waiting_producer.set_exception(ChannelClosed(which_chan=self))
 
         waiting_recievers_to_satisfy: list[Any] = []
         # for buffered channels drain the buffer for all waiting receivers
         if self.bound:
             while self.buffer and self.ready_receivers:
+                print("how")
                 waiting_recievers_to_satisfy.append(
                     (self.ready_receivers.popleft(), self.buffer.popleft())
                 )
-            leftover_receivers = self.ready_receivers
+            leftover_receivers = collections.deque(self.ready_receivers)
             self.ready_receivers.clear()
 
             # give waiting receivers items
             for receiver, item in waiting_recievers_to_satisfy:
+                print("ho")
                 receiver.set_result(item)
 
             # give left over recievers exceptions
             for receiver in leftover_receivers:
-                receiver.set_exception(ChannelClosed)
+                print(f"ending {receiver=}")
+                receiver.set_exception(ChannelClosed(which_chan=self))
             return
 
         # for unbuffered channels , no draining -- just give exceptions
         for r in self.ready_receivers:
-            r.set_exception(ChannelClosed)
+            r.set_exception(ChannelClosed(which_chan=self))
+
+    # async iteration
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self) -> Any:
+        try:
+            return await self.pull()
+        except ChannelClosed:
+            raise StopAsyncIteration
+
+    # Context manager
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    def empty(self) -> bool:
+        """Returns True if the channel is empty, False otherwise."""
+        return len(self.buffer) == 0
+        # pass
+
+    def full(self) -> bool:
+        """Returns True if there are maxsize items in the channel."""
+        return len(self.buffer) == self.bound
+
+    def csize(self) -> int | None:
+        """Return the number of items in the queue."""
+        if self.bound:
+            return len(self.buffer)
+        return None
+
+
+# -----------------------------------------------------------------
+# async def select(*ops):
+#     # ops is a list of (channel, coro) pairs
+#     tasks = [
+#         asyncio.create_task(_wrap(op[1], op[0]))
+#         for op in ops
+#     ]
+#
+#     done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+#
+#     winner = done.pop()
+#     value, chan = await winner
+#
+#     # cancel the rest
+#     for p in pending:
+#         p.cancel()
+#
+#     return value, chan
+#
+#
+# async def _wrap(coro, chan):
+#     val = await coro
+#     return val, chan
+#
+# -----------------------------------------
+#
+#
+#   USAGE
+#   ch1 = Channel()
+# ch2 = Channel()
+#
+# # preload a value in ch1 so its pull is ready
+# await ch1.push("hello")
+#
+# val, chan = await select(
+#     (ch1, ch1.pull()),
+#     (ch2, ch2.push(42))
+# )
+#
+# if chan is ch1:
+#     print("Received from ch1:", val)
+# elif chan is ch2:
+#     print("Sent to ch2:", val)

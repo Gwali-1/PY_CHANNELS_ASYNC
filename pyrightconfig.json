@@ -2,5 +2,7 @@
   "typeCheckingMode": "strict",
   "reportAny": "none",
   "reportMissingImports": "warning",
-  "reportUnusedImport": "warning"
+  "reportUnusedImport": "warning",
+  "reportUnknownParameterType": "none",
+  "reportMissingParameterType": "none"
 }
