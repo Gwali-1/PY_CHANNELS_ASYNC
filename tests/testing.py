@@ -1,4 +1,5 @@
-from context import Channel
+import threading
+from context import Channel, chanselect
 
 import asyncio
 
@@ -28,9 +29,33 @@ async def display(c: Channel, n: str):
 
 async def main():
 
-    c = Channel(bound=10)
+    chan_a = Channel(bound=10)
+    chan_b = Channel(bound=10)
 
-    task1 = asyncio.create_task(send(c, 0, 12))
+    async def produce(time: int, c: Channel, v):
+        while True:
+            await c.push(v)
+
+    def produce_from_another_thread(chan: Channel, loop: asyncio.AbstractEventLoop):
+        asyncio.get_running_loop
+        for i in range(5):
+            loop.call_soon_threadsafe(asyncio.create_task, chan.push("chan_b"))
+
+    # asyncio.create_task(produce(0, chan_b, "chan_b"))
+    # asyncio.create_task(produce(0, chan_a, "chan_a"))
+
+    l = asyncio.get_running_loop()
+    t = threading.Thread(target=produce_from_another_thread, args=(chan_a, l))
+    t.start()
+    while True:
+        chan, value = await chanselect((chan_a, chan_a.pull()), (chan_b, chan_b.pull()))
+        if chan_a == chan:
+            print(f"chan_a finished first with {value=}")
+        if chan_b == chan:
+            print(f"chan_b finished first with {value=}")
+        await asyncio.sleep(1)
+
+    # task1 = asyncio.create_task(send(c, 0, 12))
     # task1 = asyncio.create_task(send(c, 1, 2))
 
     # await asyncio.sleep(3)
@@ -42,14 +67,14 @@ async def main():
     # task1 = asyncio.create_task(send(c, 7, 8))
     # # task2 = asyncio.create_task(send(c, 100, 200)
     # await asyncio.sleep(4)
-    task3 = asyncio.create_task(display(c, "a"))
-    task4 = asyncio.create_task(display(c, "b"))
-    task5 = asyncio.create_task(display(c, "c"))
-    task6 = asyncio.create_task(display(c, "d"))
-    task7 = asyncio.create_task(display(c, "e"))
-    # task4 = asyncio.create_task(display(c))
+    # task3 = asyncio.create_task(display(c, "a"))
+    # task4 = asyncio.create_task(display(c, "b"))
+    # task5 = asyncio.create_task(display(c, "c"))
+    # task6 = asyncio.create_task(display(c, "d"))
+    # task7 = asyncio.create_task(display(c, "e"))
+    # # task4 = asyncio.create_task(display(c))
 
-    await asyncio.gather(task1, task3, task4, task5, task6, task7)
+    # await asyncio.gather(task1, task3, task4, task5, task6, task7)
 
 
 if __name__ == "__main__":

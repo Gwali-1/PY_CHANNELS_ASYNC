@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 
 [dev-packages]
+pytest = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.11"

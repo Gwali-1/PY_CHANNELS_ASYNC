@@ -1,7 +1,9 @@
+from ast import List, Tuple
 import asyncio
 import collections
 from asyncio import Future
-from typing import Any
+from types import CoroutineType
+from typing import Any, Coroutine
 
 from pychanasync.errors import ChanError, ChannelClosed
 
@@ -74,7 +76,8 @@ class Channel:
             # unbuffered
             if self.ready_receivers:
                 ready_receiver: Future[Any] = self.ready_receivers.popleft()
-                ready_receiver.set_result(value)
+                if not ready_receiver.cancelled():
+                    ready_receiver.set_result(value)
                 return
 
             else:
@@ -87,7 +90,8 @@ class Channel:
         # if buffered channel and there are pending receivers
         if self.ready_receivers:
             ready_receiver_buff: Future[Any] = self.ready_receivers.popleft()
-            ready_receiver_buff.set_result(value)
+            if not ready_receiver_buff.cancelled():
+                ready_receiver_buff.set_result(value)
             return
 
         # if there is space
@@ -120,8 +124,9 @@ class Channel:
             if self.ready_producers:
                 producer_component: ProducerComponent = self.ready_producers.popleft()
                 ready_producer: Future[Any] = producer_component.producer
-                ready_producer.set_result(None)
-                return producer_component.value
+                if not ready_producer.cancelled():
+                    ready_producer.set_result(None)
+                    return producer_component.value
 
             ready_receiver: Future[Any] = asyncio.Future()
             self.ready_receivers.append(ready_receiver)
@@ -136,8 +141,9 @@ class Channel:
                     self.ready_producers.popleft()
                 )
                 ready_producer_buff: Future[Any] = producer_component_buff.producer
-                ready_producer_buff.set_result(None)
-                self.buffer.append(producer_component_buff.value)
+                if not ready_producer_buff.cancelled():
+                    ready_producer_buff.set_result(None)
+                    self.buffer.append(producer_component_buff.value)
             return item
 
         # if buffered channel and buffer is empty then receiver will block
@@ -160,8 +166,6 @@ class Channel:
         # close channel
         self.closed = True
 
-        print(f"closing the channel  {self.ready_receivers=} {self.buffer=}")
-
         # tell all waiting producers channel is closed
         for p in self.ready_producers:
             waiting_producer: Future[Any] = p.producer
@@ -171,7 +175,6 @@ class Channel:
         # for buffered channels drain the buffer for all waiting receivers
         if self.bound:
             while self.buffer and self.ready_receivers:
-                print("how")
                 waiting_recievers_to_satisfy.append(
                     (self.ready_receivers.popleft(), self.buffer.popleft())
                 )
@@ -180,12 +183,10 @@ class Channel:
 
             # give waiting receivers items
             for receiver, item in waiting_recievers_to_satisfy:
-                print("ho")
                 receiver.set_result(item)
 
             # give left over recievers exceptions
             for receiver in leftover_receivers:
-                print(f"ending {receiver=}")
                 receiver.set_exception(ChannelClosed(which_chan=self))
             return
 
@@ -227,45 +228,40 @@ class Channel:
 
 
 # -----------------------------------------------------------------
-# async def select(*ops):
-#     # ops is a list of (channel, coro) pairs
-#     tasks = [
-#         asyncio.create_task(_wrap(op[1], op[0]))
-#         for op in ops
-#     ]
-#
-#     done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-#
-#     winner = done.pop()
-#     value, chan = await winner
-#
-#     # cancel the rest
-#     for p in pending:
-#         p.cancel()
-#
-#     return value, chan
-#
-#
-# async def _wrap(coro, chan):
-#     val = await coro
-#     return val, chan
-#
-# -----------------------------------------
-#
-#
-#   USAGE
-#   ch1 = Channel()
-# ch2 = Channel()
-#
-# # preload a value in ch1 so its pull is ready
-# await ch1.push("hello")
-#
-# val, chan = await select(
-#     (ch1, ch1.pull()),
-#     (ch2, ch2.push(42))
-# )
-#
-# if chan is ch1:
-#     print("Received from ch1:", val)
-# elif chan is ch2:
-#     print("Sent to ch2:", val)
+async def chanselect(
+    *ops: tuple[Channel, Coroutine[None, None, Any]]
+) -> tuple[Channel, Any | None]:
+    """
+    Provides a way to wait on multiple channel operations at once and returns the one that finishes first.
+    Accepts the channel and its operatios as a tupe
+
+    Example: Call select(
+        (chan_a, chan_a.push(4)),
+        (chan_b, chan_b.pull()),
+        (chan_c, chan_c.push(40)),
+    )
+
+    If the operation is a `pull` it returns the channel and the value  ->  (chan,value).
+    If the operation is a `push` it returns the channel and the None  ->  (chan,None).
+    """
+
+    # turn coroutines into tasks using helper wrapper
+    tasks = [asyncio.create_task(_wrap(op[1], op[0])) for op in ops]
+
+    done, pending = await asyncio.wait(
+        tasks, return_when=asyncio.FIRST_COMPLETED
+    )  # returns which ever task finishes first
+
+    winner = done.pop()
+    value, chan = await winner
+
+    # cancel the rest
+    for p in pending:
+        p.cancel()
+
+    return chan, value
+
+
+async def _wrap(coro: Coroutine[None, None, Any], chan: Channel):
+    val = await coro
+    return val, chan

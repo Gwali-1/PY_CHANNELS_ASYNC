@@ -1,3 +1,3 @@
-from .chan import Channel
+from .chan import Channel, chanselect
 
-__all__ = ["Channel"]
+__all__ = ["Channel", "chanselect"]
