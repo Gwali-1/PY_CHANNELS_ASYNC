@@ -1,5 +1,6 @@
-# PY_CHANNELS_ASYNC
+[![Run Tests](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/actions/workflows/test-and-lint.yml/badge.svg)](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/actions/workflows/test-and-lint.yml)
 
+# PY_CHANNELS_ASYNC
 _An async-native python channel implementation._
 
 _Providing a non blocking, coroutine friendly way for tasks to communicate and synchronize._
