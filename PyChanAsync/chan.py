@@ -1,8 +1,6 @@
-from ast import List, Tuple
 import asyncio
 import collections
 from asyncio import Future
-from types import CoroutineType
 from typing import Any, Coroutine
 
 from pychanasync.errors import ChanError, ChannelClosed
@@ -42,13 +40,15 @@ class Channel:
         if bound is not None and bound < 0:
             raise ChanError("Channel bound must be > 0")
 
-        self.bound: int | None = bound
-        if self.bound is not None:  # avoid buffer allocation entirely if not needed
+        self._bound: int | None = bound
+        if self._bound is not None:  # avoid buffer allocation entirely if not needed
             self.buffer: collections.deque[Any] = collections.deque(maxlen=bound)
-        self.closed: bool = False
+        self._closed: bool = False
         # self.ready_receivers: deque[Future[Any]] = deque()
-        self.ready_receivers: collections.deque[Future[Any]] = collections.deque()
-        self.ready_producers: collections.deque[ProducerComponent] = collections.deque()
+        self._ready_receivers: collections.deque[Future[Any]] = collections.deque()
+        self._ready_producers: collections.deque[ProducerComponent] = (
+            collections.deque()
+        )
 
     def __repr__(self) -> str:
         return f"<Chan 0x{id(self):X}>"
@@ -69,13 +69,13 @@ class Channel:
 
         # check if channel is closed
 
-        if self.closed:
+        if self._closed:
             raise ChannelClosed(which_chan=self)
 
-        if self.bound is None:
+        if self._bound is None:
             # unbuffered
-            if self.ready_receivers:
-                ready_receiver: Future[Any] = self.ready_receivers.popleft()
+            if self._ready_receivers:
+                ready_receiver: Future[Any] = self._ready_receivers.popleft()
                 if not ready_receiver.cancelled():
                     ready_receiver.set_result(value)
                 return
@@ -83,26 +83,26 @@ class Channel:
             else:
                 ready_producer: Future[Any] = asyncio.Future()
                 new_producer = ProducerComponent(ready_producer, value)
-                self.ready_producers.append(new_producer)
+                self._ready_producers.append(new_producer)
                 return await ready_producer
 
         # buffered
         # if buffered channel and there are pending receivers
-        if self.ready_receivers:
-            ready_receiver_buff: Future[Any] = self.ready_receivers.popleft()
+        if self._ready_receivers:
+            ready_receiver_buff: Future[Any] = self._ready_receivers.popleft()
             if not ready_receiver_buff.cancelled():
                 ready_receiver_buff.set_result(value)
             return
 
         # if there is space
-        if len(self.buffer) < self.bound:  # pyright: ignore[reportOperatorIssue]
+        if len(self.buffer) < self._bound:  # pyright: ignore[reportOperatorIssue]
             self.buffer.append(value)
             return
 
         # if there is no space in the buffer producer will wait
         ready_producer_buffered: Future[Any] = asyncio.Future()
         new_producer = ProducerComponent(ready_producer_buffered, value)
-        self.ready_producers.append(new_producer)
+        self._ready_producers.append(new_producer)
         return await ready_producer_buffered
 
     async def pull(self) -> None | Any:
@@ -116,29 +116,29 @@ class Channel:
         . Otherwise it will  block and wait until there is items in te channel.
 
         """
-        if self.closed:
+        if self._closed:
             raise ChannelClosed(which_chan=self)
 
         # unbuffered
-        if self.bound is None:
-            if self.ready_producers:
-                producer_component: ProducerComponent = self.ready_producers.popleft()
+        if self._bound is None:
+            if self._ready_producers:
+                producer_component: ProducerComponent = self._ready_producers.popleft()
                 ready_producer: Future[Any] = producer_component.producer
                 if not ready_producer.cancelled():
                     ready_producer.set_result(None)
                     return producer_component.value
 
             ready_receiver: Future[Any] = asyncio.Future()
-            self.ready_receivers.append(ready_receiver)
+            self._ready_receivers.append(ready_receiver)
             return await ready_receiver
 
         # buffered
         # if we have values in buffer
         if self.buffer:
             item = self.buffer.popleft()
-            if self.ready_producers:
+            if self._ready_producers:
                 producer_component_buff: ProducerComponent = (
-                    self.ready_producers.popleft()
+                    self._ready_producers.popleft()
                 )
                 ready_producer_buff: Future[Any] = producer_component_buff.producer
                 if not ready_producer_buff.cancelled():
@@ -148,7 +148,7 @@ class Channel:
 
         # if buffered channel and buffer is empty then receiver will block
         ready_receiver_buff: Future[Any] = asyncio.Future()
-        self.ready_receivers.append(ready_receiver_buff)
+        self._ready_receivers.append(ready_receiver_buff)
         return await ready_receiver_buff
 
     def close(self) -> None:
@@ -164,22 +164,22 @@ class Channel:
         """
 
         # close channel
-        self.closed = True
+        self._closed = True
 
         # tell all waiting producers channel is closed
-        for p in self.ready_producers:
+        for p in self._ready_producers:
             waiting_producer: Future[Any] = p.producer
             waiting_producer.set_exception(ChannelClosed(which_chan=self))
 
         waiting_recievers_to_satisfy: list[Any] = []
         # for buffered channels drain the buffer for all waiting receivers
-        if self.bound:
-            while self.buffer and self.ready_receivers:
+        if self._bound:
+            while self.buffer and self._ready_receivers:
                 waiting_recievers_to_satisfy.append(
-                    (self.ready_receivers.popleft(), self.buffer.popleft())
+                    (self._ready_receivers.popleft(), self.buffer.popleft())
                 )
-            leftover_receivers = collections.deque(self.ready_receivers)
-            self.ready_receivers.clear()
+            leftover_receivers = collections.deque(self._ready_receivers)
+            self._ready_receivers.clear()
 
             # give waiting receivers items
             for receiver, item in waiting_recievers_to_satisfy:
@@ -191,7 +191,7 @@ class Channel:
             return
 
         # for unbuffered channels , no draining -- just give exceptions
-        for r in self.ready_receivers:
+        for r in self._ready_receivers:
             r.set_exception(ChannelClosed(which_chan=self))
 
     # async iteration
@@ -218,13 +218,17 @@ class Channel:
 
     def full(self) -> bool:
         """Returns True if there are maxsize items in the channel."""
-        return len(self.buffer) == self.bound
+        return len(self.buffer) == self._bound
 
     def csize(self) -> int | None:
         """Return the number of items in the queue."""
-        if self.bound:
+        if self._bound:
             return len(self.buffer)
         return None
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
 
 
 # -----------------------------------------------------------------
