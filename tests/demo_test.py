@@ -1,5 +1,5 @@
 import threading
-from context import Channel, chanselect
+from .context import Channel, chanselect
 
 import asyncio
 
