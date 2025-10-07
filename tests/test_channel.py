@@ -1,6 +1,6 @@
 import asyncio
 from typing import Any
-from .context import chanselect, Channel
+from pychanasync import chanselect, Channel
 
 
 async def consume_and_fill(chan: Channel, container: list[Any]):
