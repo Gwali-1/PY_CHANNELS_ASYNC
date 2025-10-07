@@ -1,9 +1,6 @@
 import threading
-from .context import Channel, chanselect
-
 import asyncio
-
-from pychanasync.errors import ChannelClosed
+from pychanasync import Channel, chanselect, ChannelClosed
 
 
 async def send(channel: Channel, start: int, end: int):
@@ -32,13 +29,13 @@ async def main():
     chan_a = Channel(bound=10)
     chan_b = Channel(bound=10)
 
-    async def produce(time: int, c: Channel, v):
-        while True:
-            await c.push(v)
-
+    # async def produce(time: int, c: Channel, v):
+    #     while True:
+    #         await c.push(v)
+    #
     def produce_from_another_thread(chan: Channel, loop: asyncio.AbstractEventLoop):
         asyncio.get_running_loop
-        for i in range(5):
+        for _ in range(5):
             loop.call_soon_threadsafe(asyncio.create_task, chan.push("chan_b"))
 
     # asyncio.create_task(produce(0, chan_b, "chan_b"))

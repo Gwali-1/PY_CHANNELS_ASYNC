@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "60d943c62bb6f7fadf7649bba90f3d7240b8848f967f1881b92e63c77cd8ab2b"
+            "sha256": "3d94bb8b4ec4c3960b2df32e50965126a5797fe75dd59e36cde29c66bc89ffb1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -15,7 +15,12 @@
             }
         ]
     },
-    "default": {},
+    "default": {
+        "pychanasync": {
+            "editable": true,
+            "file": "."
+        }
+    },
     "develop": {
         "iniconfig": {
             "hashes": [
