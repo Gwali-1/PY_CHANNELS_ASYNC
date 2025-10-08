@@ -1,11 +1,8 @@
-from asyncio.tasks import Task
-import gc
-import threading
 import asyncio
-from time import sleep
-import time
+from asyncio.tasks import Task
 from typing import Any
-from pychanasync import Channel, chanselect, ChannelClosed
+
+from pychanasync import Channel, ChannelClosed
 
 
 async def send(channel: Channel, start: int, end: int):

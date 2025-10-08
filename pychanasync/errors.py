@@ -27,3 +27,14 @@ class ChannelFull(Exception):
     def __init__(self, *args: object, **kwargs: object) -> None:
         self.which_chan: object = kwargs.pop("which_chan")
         super().__init__(*args, **kwargs)
+
+
+class ChannelEmpty(Exception):
+    """
+    ChannelEmpty  exception  thrown when a channel(in this case buffered) is empty, and
+    receiver does not want to wait.
+    """
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        self.which_chan: object = kwargs.pop("which_chan")
+        super().__init__(*args, **kwargs)
