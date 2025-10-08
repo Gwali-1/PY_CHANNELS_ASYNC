@@ -3,6 +3,11 @@ from typing import Any
 from pychanasync import chanselect, Channel
 
 
+class YieldToTheEventLoop:
+    def __await__(self):
+        yield
+
+
 async def consume_and_fill(chan: Channel, container: list[Any]):
     async for value in chan:
         container.append(value)
@@ -12,7 +17,7 @@ async def producer(chan: Channel, vals: list[Any]):
     for v in vals:
         await chan.push(v)
 
-    await asyncio.sleep(0)  # yield contddrol one more time before a close
+    await YieldToTheEventLoop()  # yield control one more time before a close
     chan.close()
 
 
@@ -56,7 +61,7 @@ class TestChannel:
             for v in vals:
                 await chan.push(v)
 
-            # await asyncio.sleep(0)  # we don't need to yield here - unbuffered channel comunication is sync.
+            # await YieldToTheEventLoop()  # we don't need to yield here - unbuffered channel comunication is sync.
             chan.close()
 
         consumer_task = asyncio.create_task(consume_and_fill(chan, vals))

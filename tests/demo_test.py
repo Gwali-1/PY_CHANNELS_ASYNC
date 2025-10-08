@@ -1,5 +1,10 @@
+from asyncio.tasks import Task
+import gc
 import threading
 import asyncio
+from time import sleep
+import time
+from typing import Any
 from pychanasync import Channel, chanselect, ChannelClosed
 
 
@@ -24,33 +29,55 @@ async def display(c: Channel, n: str):
             break
 
 
+async def do_some(t: Task[Any]):
+    print("do_some")
+    await asyncio.sleep(1)
+    v = await t
+    print(v)
+
+
+async def sleep_some():
+    print("sleep_some")
+    await asyncio.sleep(2)
+
+
+async def fake_main():
+    # Here we create a task but do NOT keep any reference to it.
+    # After fake_main() exits, no one holds the task alive.
+    asyncio.create_task(sleep_some())
+    print("fake_main done")
+
+
 async def main():
 
-    chan_a = Channel(bound=10)
-    chan_b = Channel(bound=10)
+    asyncio.create_task(fake_main())
+    print("done ")
 
+    # chan_a = Channel(bound=10)
+    # chan_b = Channel(bound=10)
+    #
     # async def produce(time: int, c: Channel, v):
     #     while True:
     #         await c.push(v)
     #
-    def produce_from_another_thread(chan: Channel, loop: asyncio.AbstractEventLoop):
-        asyncio.get_running_loop
-        for _ in range(5):
-            loop.call_soon_threadsafe(asyncio.create_task, chan.push("chan_b"))
+    # def produce_from_another_thread(chan: Channel, loop: asyncio.AbstractEventLoop):
+    #     asyncio.get_running_loop
+    #     for _ in range(5):
+    #         loop.call_soon_threadsafe(asyncio.create_task, chan.push("chan_b"))
 
     # asyncio.create_task(produce(0, chan_b, "chan_b"))
     # asyncio.create_task(produce(0, chan_a, "chan_a"))
 
-    l = asyncio.get_running_loop()
-    t = threading.Thread(target=produce_from_another_thread, args=(chan_a, l))
-    t.start()
-    while True:
-        chan, value = await chanselect((chan_a, chan_a.pull()), (chan_b, chan_b.pull()))
-        if chan_a == chan:
-            print(f"chan_a finished first with {value=}")
-        if chan_b == chan:
-            print(f"chan_b finished first with {value=}")
-        await asyncio.sleep(1)
+    # l = asyncio.get_running_loop()
+    # t = threading.Thread(target=produce_from_another_thread, args=(chan_a, l))
+    # t.start()
+    # while True:
+    #     chan, value = await chanselect((chan_a, chan_a.pull()), (chan_b, chan_b.pull()))
+    #     if chan_a == chan:
+    #         print(f"chan_a finished first with {value=}")
+    #     if chan_b == chan:
+    #         print(f"chan_b finished first with {value=}")
+    #     await asyncio.sleep(1)
 
     # task1 = asyncio.create_task(send(c, 0, 12))
     # task1 = asyncio.create_task(send(c, 1, 2))
