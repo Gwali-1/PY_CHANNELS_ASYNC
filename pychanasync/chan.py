@@ -3,7 +3,7 @@ import collections
 from asyncio import Future
 from typing import Any, Coroutine
 
-from pychanasync.errors import ChanError, ChannelClosed
+from pychanasync.errors import ChannelError, ChannelClosed, ChannelFull, ChannelEmpty
 
 # # --- Context manager ---
 # async def __aenter__(self):
@@ -38,7 +38,7 @@ class Channel:
 
         # validate bound
         if bound is not None and bound < 0:
-            raise ChanError("Channel bound must be > 0")
+            raise ChannelError("Channel bound must be > 0")
 
         self._bound: int | None = bound
         if self._bound is not None:  # avoid buffer allocation entirely if not needed
@@ -105,6 +105,45 @@ class Channel:
         self._ready_producers.append(new_producer)
         return await ready_producer_buffered
 
+    async def push_nowait(self, value: Any) -> Future[Any] | None:
+        """
+        Pushes an item into a buffered channel and does not wait or suspend  if the channel is full.
+
+        `push_nowait` will put item in the channel and return immediately if there is space
+        in buffer. otherwise it will   raise a `ChannelFull` exception.
+
+        This operation is only allowed on  a buffered channel and will throw a `ChannelError` exception when
+        used on a unbuffered channel.
+
+        :param value: the item to push into the channel
+        """
+
+        # check if channel is closed
+
+        if self._closed:
+            raise ChannelClosed(which_chan=self)
+
+        if self._bound is None:
+            raise ChannelError(
+                "push_nowait operation not allowed on unbuffered channels"
+            )
+
+        # buffered
+        # if buffered channel and there are pending receivers
+        if self._ready_receivers:
+            ready_receiver_buff: Future[Any] = self._ready_receivers.popleft()
+            if not ready_receiver_buff.cancelled():
+                ready_receiver_buff.set_result(value)
+            return
+
+        # if there is space
+        if len(self.buffer) < self._bound:  # pyright: ignore[reportOperatorIssue]
+            self.buffer.append(value)
+            return
+
+        # if there is no space in the buffer producer will wait
+        raise ChannelFull(which_chan=self)
+
     async def pull(self) -> None | Any:
         """
         Pulls an item from the channel
@@ -150,6 +189,42 @@ class Channel:
         ready_receiver_buff: Future[Any] = asyncio.Future()
         self._ready_receivers.append(ready_receiver_buff)
         return await ready_receiver_buff
+
+    async def pull_nowait(self) -> None | Any:
+        """
+        Pulls an item from the channel and does not wait or suspend when the channel is empty
+
+        `pull_nowait` will return an tem from the channel immediately if the buffer is not empty
+        . Otherwise it  will raise a `ChannelEmpty` exception.
+
+        This operation is only allowed on a buffered channel and will throw a `ChannelError` exception when
+        used on a unbuffered channel.
+
+        """
+        if self._closed:
+            raise ChannelClosed(which_chan=self)
+
+        if self._bound is None:
+            raise ChannelError(
+                "pull_nowait operation not allowed on unbuffered channels"
+            )
+
+        # buffered
+        # if we have values in buffer
+        if self.buffer:
+            item = self.buffer.popleft()
+            if self._ready_producers:
+                producer_component_buff: ProducerComponent = (
+                    self._ready_producers.popleft()
+                )
+                ready_producer_buff: Future[Any] = producer_component_buff.producer
+                if not ready_producer_buff.cancelled():
+                    ready_producer_buff.set_result(None)
+                    self.buffer.append(producer_component_buff.value)
+            return item
+
+        # if buffered channel and buffer is empty then we shall raise an exception
+        raise ChannelEmpty(which_chan=self)
 
     def close(self) -> None:
         """

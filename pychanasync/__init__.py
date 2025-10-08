@@ -1,4 +1,4 @@
 from .chan import Channel, chanselect
-from .errors import ChanError, ChannelClosed, ChannelFull
+from .errors import ChannelError, ChannelClosed, ChannelFull
 
-__all__ = ["Channel", "chanselect", "ChanError", "ChannelClosed", "ChannelFull"]
+__all__ = ["Channel", "chanselect", "ChannelError", "ChannelClosed", "ChannelFull"]

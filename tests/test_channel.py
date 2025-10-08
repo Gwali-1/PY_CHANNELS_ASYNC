@@ -1,6 +1,8 @@
 import asyncio
+import pytest
 from typing import Any
 from pychanasync import chanselect, Channel
+from pychanasync.errors import ChannelEmpty, ChannelError, ChannelFull
 
 
 class YieldToTheEventLoop:
@@ -39,7 +41,7 @@ async def wait_and_pull(chan: Channel, wait_time: float):
 
 
 class TestChannel:
-    async def test_simple_production_consumption_or_buffered_channel(self):
+    async def test_simple_production_consumption_for_buffered_channel(self):
 
         chan = Channel(bound=1)
         vals: list[Any] = []
@@ -195,3 +197,51 @@ class TestChannel:
 
         assert len(container) == 50
         assert container[len(container) - 1] == 49
+
+    async def test_push_nowait_on_unbuffered_channel_should_raise_a_channelException(
+        self,
+    ):
+        chan = Channel()
+        with pytest.raises(ChannelError) as e:
+            await chan.push_nowait(3)
+            assert "not allowed" in str(e.value)
+
+    async def test_push_nowait_on_buffered_channel_should_raise_a_channelFull_exception_whhen_channel_is_full(
+        self,
+    ):
+        chan = Channel(bound=2)
+        await chan.push_nowait(2)
+        await chan.push_nowait(4)
+
+        with pytest.raises(ChannelFull):
+            await chan.push_nowait(3)
+
+        assert chan.full() is True
+        assert chan.csize() == 2
+
+    async def test_pull_nowait_on_unbuffered_channel_should_raise_a_channelException(
+        self,
+    ):
+        chan = Channel()
+        with pytest.raises(ChannelError) as e:
+            await chan.pull_nowait()
+            assert "not allowed" in str(e.value)
+
+    async def test_pull_nowait_on_buffered_channel_should_raise_a_channelEmpty_exception_whhen_channel_is_empty(
+        self,
+    ):
+        chan = Channel(bound=2)
+        await chan.push_nowait(2)
+        await chan.push_nowait(4)
+
+        val1 = await chan.pull_nowait()
+        val2 = await chan.pull_nowait()
+
+        assert val1 == 2
+        assert val2 == 4
+
+        with pytest.raises(ChannelEmpty):
+            await chan.pull_nowait()
+
+        assert chan.full() is False
+        assert chan.csize() == 0

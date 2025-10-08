@@ -4,5 +4,8 @@
   "reportMissingImports": "warning",
   "reportUnusedImport": "warning",
   "reportUnknownParameterType": "none",
+  "reportUnknownMemberType": "warning",
+  "reportUnknownVariableType": "warning",
+  "reportUnknownArgumentType": "warning",
   "reportMissingParameterType": "none"
 }

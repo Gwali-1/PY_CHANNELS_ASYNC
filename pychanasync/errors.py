@@ -1,4 +1,4 @@
-class ChanError(Exception):
+class ChannelError(Exception):
     """
     Base exception class for Channel class. Represents all Channel
     related exceptions. Catching this is catching all exceptions thrown by a
