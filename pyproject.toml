@@ -5,8 +5,43 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pychanasync"
 version = "0.1.0"
-description = "Async channel implementation for Python"
-authors = [{ name = "Gwalisam Matthew" }]
+description = "Async channel implementation for Python - providing a concurrent , non-blocking means for communication between coroutines or tasks"
+authors = [{ name = "Gwalisam Matthew" , email="gwalisammatthew2@gmail.com"}]
 requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
 dependencies = []
+
+
+[project.urls]
+homepage = "https://github.com/yourname/pychanasync"
+repository = "https://github.com/Gwali-1/PY_CHANNELS_ASYNC"
+Issues = "https://github.com/yourusername/pychanasync/issues"
+documentation = "https://your-docs-site.com"
+
+
+
+# Classifiers help users and PyPI categorize your package
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System ::  Concurrency",
+]
+
+keywords = ["async", "channel", "concurrency", "non-blocking", "python", "asyncio"]
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pychanasync*"]
+exclude = ["tests*"]
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
 
