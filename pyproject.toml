@@ -26,6 +26,7 @@ classifiers = [
     "Topic :: System ::  Concurrency",
 ]
 
+keywords = ["async", "channel", "concurrency", "non-blocking", "python", "asyncio"]
 
 [project.urls]
 homepage = "https://github.com/yourname/pychanasync"
@@ -34,13 +35,13 @@ Issues = "https://github.com/yourusername/pychanasync/issues"
 documentation = "https://your-docs-site.com"
 
 
-keywords = ["async", "channel", "concurrency", "non-blocking", "python", "asyncio"]
 
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pychanasync*"]
 exclude = ["tests*"]
+
 
 [tool.setuptools]
 package-dir = {"" = "."}
