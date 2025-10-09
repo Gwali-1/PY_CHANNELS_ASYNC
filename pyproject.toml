@@ -10,15 +10,8 @@ authors = [{ name = "Gwalisam Matthew" , email="gwalisammatthew2@gmail.com"}]
 requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
+
 dependencies = []
-
-
-[project.urls]
-homepage = "https://github.com/yourname/pychanasync"
-repository = "https://github.com/Gwali-1/PY_CHANNELS_ASYNC"
-Issues = "https://github.com/yourusername/pychanasync/issues"
-documentation = "https://your-docs-site.com"
-
 
 
 # Classifiers help users and PyPI categorize your package
@@ -32,6 +25,14 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: System ::  Concurrency",
 ]
+
+
+[project.urls]
+homepage = "https://github.com/yourname/pychanasync"
+repository = "https://github.com/Gwali-1/PY_CHANNELS_ASYNC"
+Issues = "https://github.com/yourusername/pychanasync/issues"
+documentation = "https://your-docs-site.com"
+
 
 keywords = ["async", "channel", "concurrency", "non-blocking", "python", "asyncio"]
 
