@@ -203,18 +203,18 @@ class TestChannel:
     ):
         chan = Channel()
         with pytest.raises(ChannelError) as e:
-            await chan.push_nowait(3)
+            chan.push_nowait(3)
             assert "not allowed" in str(e.value)
 
     async def test_push_nowait_on_buffered_channel_should_raise_a_channelFull_exception_whhen_channel_is_full(
         self,
     ):
         chan = Channel(bound=2)
-        await chan.push_nowait(2)
-        await chan.push_nowait(4)
+        chan.push_nowait(2)
+        chan.push_nowait(4)
 
         with pytest.raises(ChannelFull):
-            await chan.push_nowait(3)
+            chan.push_nowait(3)
 
         assert chan.full() is True
         assert chan.csize() == 2
@@ -224,24 +224,24 @@ class TestChannel:
     ):
         chan = Channel()
         with pytest.raises(ChannelError) as e:
-            await chan.pull_nowait()
+            chan.pull_nowait()
             assert "not allowed" in str(e.value)
 
     async def test_pull_nowait_on_buffered_channel_should_raise_a_channelEmpty_exception_whhen_channel_is_empty(
         self,
     ):
         chan = Channel(bound=2)
-        await chan.push_nowait(2)
-        await chan.push_nowait(4)
+        chan.push_nowait(2)
+        chan.push_nowait(4)
 
-        val1 = await chan.pull_nowait()
-        val2 = await chan.pull_nowait()
+        val1 = chan.pull_nowait()
+        val2 = chan.pull_nowait()
 
         assert val1 == 2
         assert val2 == 4
 
         with pytest.raises(ChannelEmpty):
-            await chan.pull_nowait()
+            chan.pull_nowait()
 
         assert chan.full() is False
         assert chan.csize() == 0

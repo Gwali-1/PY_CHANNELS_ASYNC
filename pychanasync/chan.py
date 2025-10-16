@@ -105,7 +105,7 @@ class Channel:
         self._ready_producers.append(new_producer)
         return await ready_producer_buffered
 
-    async def push_nowait(self, value: Any) -> Future[Any] | None:
+    def push_nowait(self, value: Any) -> Future[Any] | None:
         """
         Pushes an item into a buffered channel and does not wait or suspend  if the channel is full.
 
@@ -190,7 +190,7 @@ class Channel:
         self._ready_receivers.append(ready_receiver_buff)
         return await ready_receiver_buff
 
-    async def pull_nowait(self) -> None | Any:
+    def pull_nowait(self) -> None | Any:
         """
         Pulls an item from the channel and does not wait or suspend when the channel is empty
 
