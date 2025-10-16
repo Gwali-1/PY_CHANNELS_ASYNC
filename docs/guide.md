@@ -203,18 +203,134 @@ When the async-with block exits , the channel is closed automatically.
 pychanasync provides non blocking variants of push and pull on buffered channels.
 In this case , the coroutine will not block or suspend like the normal methods.
 
-These methods will raise exceptions when the operation cannot proceed immediately
+These methods will raise exceptions when the operation cannot proceed immediately.
 
-## exampls with other featurs - iteration , contexct manager , nowait select Async
+When you try to send an item with `push_nowait` into a buffered channel which is
+full, it raises a `ChannelFull` exceptions.
 
-## Reference - methods and properties
+When you try to pull an item with `push_nowait` from a buffered channel which is
+empty, it raises a `ChannelEmpty` exceptions.
 
-## Contributing and Development
+**push_nowait**
 
-## Setting up a dev environment
+```python
+ch = Channel(bound=2)
 
-## Running tests
+ch.push_nowait("A")
+ch.push_nowait("B")
 
-## Style guide and contribution guidelines
+try:
+    ch.push_nowait("C")
+except ChannelFull:
+    print("Buffer is full — could not push!")
 
-## semantic details
+
+```
+
+**pull_nowait**
+
+```python
+try:
+    value = ch.pull_nowait()
+except ChannelEmpty:
+    print("Buffer is empty — nothing to receive.")
+
+```
+
+## Channel closing behaviour
+
+Closing the channel signals that no more items can be sent or read from it.
+But what happens to already pending receive or send operaations depends
+on the type of channel.
+
+**Buffered channel**
+
+When you close a buffered channel, the internal buffer is drained.Any pending
+readers will receive the items in the buffer at the time of closing. Once the buffer
+is empty and there are more pending readers , They are woken up or terminated with
+a `ChannelClosed` exceptions.
+
+Also all pending senders , thus those waiting to push into the channel but the buffer
+was full are terminated with a `ChannelClosed` exception.
+
+After closing, no new send or receive operations are allowed. Any attempt raises `ChannelClosed`.
+
+**unbuffered channel**
+For unbuffered channels ie those without a bound , closing the channel
+immediately terminates all pending senders and receivers with a `ChannelClosed`
+
+Because there’s no buffer to drain, no additional values are delivered after closing.
+
+And as with buffered channels , no further operaations can be performed after channel closure.
+
+## API Reference
+
+### await ch.push(val)
+
+Will suspend until item can be sent (or buffer space is available)
+
+### await ch.pull()
+
+Will suspend until value is available to be read.
+
+### ch.push_nowait(val)
+
+Raises if buffer is full (**only for buffered channels**)
+
+### ch.pull_nowait(val)
+
+Raises if buffer is empty (**only for buffered channels**)
+
+### ch.close()
+
+Closes the channel and wakes up all waiting tasks / suspended channel operation
+
+### ch.csize()
+
+Return the number of items in the queue.
+
+### ch.full()
+
+Returns True if there are maxsize items in the channel.
+
+### ch.empty()
+
+Returns True if the channel is empty, False otherwise.
+
+### ch.closed
+
+Returns True if the channel is closed.
+
+## Contributing
+
+To contribute or set up the project locally
+
+**Clone the project**
+
+```shell
+git clone https://github.com/Gwali-1/PY_CHANNELS_ASYNC
+cd PY_CHANNELS_ASYNC
+```
+
+**Install dependencies**
+
+```shell
+pipenv install --dev
+
+```
+
+**Running tests**
+From the project root
+
+```shell
+
+pipenv run pytest
+```
+
+**Installing the package locally**
+From the project root
+
+```shell
+pip install -e .
+
+```
