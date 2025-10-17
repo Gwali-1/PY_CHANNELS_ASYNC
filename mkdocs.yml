@@ -1,0 +1,40 @@
+site_name: Pychanasync Docs
+#site_dir: site
+
+
+nav:
+  - Home: 'index.md'
+
+plugins:
+  - search
+    
+extra_css:
+  - styles/extra.css
+
+markdown_extensions:
+  # Python Markdown  
+  - attr_list
+  - def_list
+  - md_in_html
+  - meta
+  - pymdownx.superfences         # required extension
+  - pymdownx.highlight:
+      use_pygments: true         # use pygments library    
+      pygments_style: default    # use 'default' style
+      noclasses: true            # update HTML style attr
+  - pymdownx.inlinehilite        # style inline code
+
+
+
+theme:
+  name: terminal
+  features:
+    - navigation.side.indexes
+    - revision.date
+    - search
+  font:
+    text: Noto Sans Mono
+    code: Roboto Mono
+    
+
+
