@@ -9,6 +9,8 @@ pychanasync = {file = ".", editable = true}
 [dev-packages]
 pytest = "*"
 pytest-asyncio = "*"
+build = "*"
+twine = "*"
 
 [requires]
 python_version = "3.11"

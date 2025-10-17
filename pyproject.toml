@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pychanasync"
-version = "0.1.0"
-description = "Async channel implementation for Python - providing a concurrent , non-blocking means for communication between coroutines or tasks"
+version = "1.0.0-beta1"
+description = "pychanasync` is a lightweight python package which brings _Go-style_ channels to python's _asyncio_ concurrency world. It is an async-channel implementation, providing a channel shaped tool for channel shaped problems."
 authors = [{ name = "Gwalisam Matthew" , email="gwalisammatthew2@gmail.com"}]
 requires-python = ">=3.11"
 readme = "README.md"
@@ -29,10 +29,10 @@ classifiers = [
 keywords = ["async", "channel", "concurrency", "non-blocking", "python", "asyncio"]
 
 [project.urls]
-homepage = "https://github.com/yourname/pychanasync"
+homepage = "https://gwali-1.github.io/PY_CHANNELS_ASYNC"
 repository = "https://github.com/Gwali-1/PY_CHANNELS_ASYNC"
-Issues = "https://github.com/yourusername/pychanasync/issues"
-documentation = "https://your-docs-site.com"
+Issues = "https://github.com/Gwali-1/PY_CHANNELS_ASYNC/issues"
+documentation = "https://gwali-1.github.io/PY_CHANNELS_ASYNC"
 
 
 
