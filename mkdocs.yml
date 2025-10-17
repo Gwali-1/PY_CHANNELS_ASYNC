@@ -1,5 +1,5 @@
 site_name: Pychanasync Docs
-#site_dir: site
+site_url: https://gwali-1.github.io/PY_CHANNELS_ASYNC/
 
 
 nav:
