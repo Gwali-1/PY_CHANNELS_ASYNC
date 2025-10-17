@@ -46,7 +46,7 @@ between coroutines and other features that feel naturally python.
 
 ## Installation
 
-pychanasync is available on [PyPi](#)
+pychanasync is available on [PyPi](https://pypi.org/project/pychanasync/)
 
 ```shell
 pip install pychanasync
@@ -376,7 +376,9 @@ Returns True if the channel is closed.
 
 ### Contributing
 
-To contribute or set up the project locally
+To contribute or set up the project locally.
+
+find the project source code on [github](https://github.com/Gwali-1/PY_CHANNELS_ASYNC) 
 
 **Clone the project**
 
