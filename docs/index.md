@@ -28,15 +28,15 @@ messages instead of going the shared mutable state and locks route.
 So if you are working on async program  in python which fits the producer-consumer pattern or
 need a  channel shaped solution, `pychanasync` is highly recommended.
 
-**It makes async program cleaner and easy to reason about!**
+**It makes async programs cleaner and easy to reason about!**
 
 ---
 
 As mentioned , pychanasync is inspired by channels in [Go](https://go101.org/article/channel.html)
 but blends it with Pythonic conventions. It provides clean, high level abstractions to pass messages
-between coroutines and other features that feel naturally python.
+between coroutines/tasks and other features that feel naturally python.
 
-- **Buffered and unbuffered channel behaviour** - _use either synchronous or buffered communication_
+- **Buffered and unbuffered channel semantics** - _use either synchronous or buffered communication_
 - **Async iteration over channels** - _Consume messages from a channel using `async for` loops._
 - **Context manager support** - _close channels and release resources when done with `async with`._
 - **Blocking/ awaitable operations** - _`await chan.push(value)` and `await chan.pull()`
@@ -98,7 +98,8 @@ and returns quickly.
 
 On the other hand when you pull from a buffered channel , the operation will
 only block or be suspended when the buffer is empty, until there are items
-available in the buffer. Other than that the operation completes and returns quickly.
+available in the buffer. Other than that the operation completes and returns and item
+from the channel quickly.
 
 Here, unlike **unbuffered** channels , both senders and receivers don't have to be in sync. The communication
 is asynchronous up to the buffers capacity limit (**N**).
@@ -154,7 +155,7 @@ _The code above follows typical structure of asynchronous code in asyncio python
 we try to implement a simple producer which is a coroutine function that that
 loops and sends a message into a buffered channel. We have another coroutine
 function which continuously reads from the buffered channel until it is closed.
-Both coroutines are scheduled to run on the event-loop to run using asyncio.gather_
+Both coroutines are scheduled to run on the event-loop using asyncio.gather_
 
 **It’s clear how pychanasync makes this pattern easy to implement,  allowing coroutines to remain decoupled in their
 execution while still communicating seamlessly in a clean and concise way.**
@@ -171,7 +172,7 @@ the way of the event loop.
 ### Async Iteration
 
 pychanasync supports async iteration, allowing you to consume items from a channel
-in a clean way using `async for loop`.
+in a clean way using `async for` loop.
 
 We can rewrite our consumer above as
 
@@ -183,7 +184,7 @@ async def consumer(ch):
 
 ```
 
-Once the producer closes the channel , the iteration ends .
+Once the producer closes the channel, the iteration ends .
 
 ### Context manager support
 
@@ -199,16 +200,16 @@ async def producer(channel):
         print(f"Sent msg {i}")
 
 ```
-When the `async-with` block exits , the channel is closed automatically.
+When the `async-with` block exits, the channel is closed automatically.
 
 ### Chanselect
 The `chanselect` utility method allows you to start and wait on multiple channel operations simultaneously,
-returning the one that completes first.
+returning the one that **completes first**.
 
-It behaves similarly to Go’s select statement enabling you to coordinate communication across several 
-channels in a clean, expressive way.
+It behaves similarly to Go’s [select](https://gobyexample.com/select) statement.
 
-The `chanselect` function takes **one or more tuples**, each containing a channel and a channel operation
+
+The `chanselect` function takes **one or more tuples**, each containing a **channel** and a **channel operation**
 (such as `chan.push(value)` or `chan.pull()`). 
 
 It concurrently waits on all provided operations and 
@@ -264,7 +265,7 @@ asyncio.run(main())
 ```
 
 In the example above 3 channels are created and populated at different times.
-The chanselect() call waits for the first available value among the three.
+The `chanselect` call waits for the first available value among the three.
 It returns as soon as the first pull operation succeed which in this case is 
 chan_a
 
@@ -273,8 +274,8 @@ chan_a
 
 ### Non-blocking channel operations
 
-pychanasync provides non blocking variants of push and pull on buffered channels.
-In this case , the coroutine will not block or suspend like the normal methods.
+pychanasync provides non blocking variants of `push` and `pull` on **buffered** channels.
+In this case , the coroutine will not block or suspend.
 
 These methods will raise exceptions when the operation cannot proceed immediately.
 
@@ -318,9 +319,9 @@ on the type of channel.
 
 **Buffered channel**
 
-When you close a buffered channel, the internal buffer is drained.Any pending
+When you close a buffered channel, the internal buffer is drained. Any pending
 readers will receive the items in the buffer at the time of closing. Once the buffer
-is empty and there are more pending readers , They are woken up or terminated with
+is empty and there are more pending readers , They are woken up/terminated with
 a `ChannelClosed` exceptions.
 
 Also, all pending senders , thus those waiting to push into the channel but the buffer
@@ -329,12 +330,13 @@ was full are terminated with a `ChannelClosed` exception.
 After closing, no new send or receive operations are allowed. Any attempt raises `ChannelClosed`.
 
 **unbuffered channel**
+
 For unbuffered channels ie those without a bound , closing the channel
 immediately terminates all pending senders and receivers with a `ChannelClosed`
 
 Because there’s no buffer to drain, no additional values are delivered after closing.
 
-And as with buffered channels , no further operaations can be performed after channel closure.
+And as with buffered channels , no further operations can be performed after channel's closure.
 
 ## API Reference
 
@@ -348,19 +350,19 @@ Will suspend until value is available to be read.
 
 #### ch.push_nowait(val)
 
-Raises if buffer is full (**only for buffered channels**)
+Raises exception if buffer is full (**only for buffered channels**)
 
 #### ch.pull_nowait(val)
 
-Raises if buffer is empty (**only for buffered channels**)
+Raises exception if buffer is empty (**only for buffered channels**)
 
 #### ch.close()
 
-Closes the channel and wakes up all waiting tasks / suspended channel operation
+Closes the channel and wakes up all waiting tasks/coroutines with pending channel operations.
 
 #### ch.csize()
 
-Return the number of items in the queue.
+Return the number of items in the channel(None for unbuffered).
 
 #### ch.full()
 

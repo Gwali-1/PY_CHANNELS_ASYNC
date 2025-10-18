@@ -26,7 +26,6 @@ markdown_extensions:
   - pymdownx.inlinehilite        # style inline code
 
 
-
 theme:
   name: terminal
   features:
