@@ -17,7 +17,7 @@ Visit [documentation](https://gwali-1.github.io/PY_CHANNELS_ASYNC/) site for mor
 
 
 ## Features
-- **Buffered and unbuffered channel behaviour** - _use either synchronous or buffered communication_
+- **Buffered and unbuffered channel semantics** - _use either synchronous or buffered communication_
 - **Async iteration over channels** - _Consume messages from a channel using `async for` loops._
 - **Context manager support** - _close channels and release resources when done with `async with`._
 - **Blocking/ awaitable operations** - _`await chan.push(value)` and `await chan.pull()`
