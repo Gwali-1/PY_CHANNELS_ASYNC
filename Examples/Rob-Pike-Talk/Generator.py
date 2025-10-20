@@ -1,23 +1,22 @@
 # Example from  Rob pike Talk - Google I/O 2012 - Go Concurrency Patterns
 # https://youtu.be/f6kdp27TYZs
+#
 
-# FAN IN PATTERN
-
+# GENERATOR PATTERN
 
 import asyncio
 from random import randint
 from typing import Any
-
 from pychanasync.chan import Channel
 
 
-async def boring(msg) -> Channel:
+async def boring() -> Channel:
     chan = Channel()  # We create a channel
 
     async def send_vals():  # Create a coroutine that sends value into the channel
         count = 0
         while True:
-            await chan.push(f"{msg} {count}")  # blocking operation
+            await chan.push(f"boring {count}")  # blocking operation
             wait = randint(0, 3)
             await asyncio.sleep(wait)
             count += 1
@@ -29,28 +28,14 @@ async def boring(msg) -> Channel:
     return chan  # return the channel
 
 
-async def fanin(input_1: Channel, input_2: Channel) -> Channel:
-    chan = Channel()
-
-    async def push_into(
-        c_input: Channel,
-    ):  # the fan in function is taking values from  the 2 channels and fanning
-        # it on to one channel
-        while True:
-            value = await c_input.pull()
-            await chan.push(value)
-
-    asyncio.create_task(push_into(input_1))
-    asyncio.create_task(push_into(input_2))
-
-    return chan
-
-
 async def main():
-    chan = await fanin(await boring("Joe"), await boring("Ann"))
+
+    chan = await boring()  # function that returns the channel
+
     for _ in range(5):
         val: Any = await chan.pull()
         print(val)
+
     print("your'e both boring. I'm leaving!")
 
 

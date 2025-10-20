@@ -1,14 +1,14 @@
 # Example from  Rob pike Talk - Google I/O 2012 - Go Concurrency Patterns
 # https://youtu.be/f6kdp27TYZs
 
-# FAN IN PATTERN
+# FAN IN PATTERN - WITH CHANSELECT
 
 
 import asyncio
 from random import randint
 from typing import Any
 
-from pychanasync.chan import Channel
+from pychanasync.chan import Channel, chanselect
 
 
 async def boring(msg) -> Channel:
@@ -32,16 +32,15 @@ async def boring(msg) -> Channel:
 async def fanin(input_1: Channel, input_2: Channel) -> Channel:
     chan = Channel()
 
-    async def push_into(
-        c_input: Channel,
-    ):  # the fan in function is taking values from  the 2 channels and fanning
+    async def push_into():  # the fan in function is taking values from  the 2 channels and fanning
         # it on to one channel
         while True:
-            value = await c_input.pull()
+            _, value = await chanselect(
+                (input_1, input_1.pull()), (input_2, input_2.pull())
+            )
             await chan.push(value)
 
-    asyncio.create_task(push_into(input_1))
-    asyncio.create_task(push_into(input_2))
+    asyncio.create_task(push_into())
 
     return chan
 
