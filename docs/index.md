@@ -16,7 +16,7 @@ cooperative_ concurrency model.
 It is designed and implemented to work with coroutines and **not threads**, providing
 safe and deterministic communication patterns without blocking the event loop.
 
-`pychanasync` is built on the concept;
+`pychanasync` is built on the idea;
 
 _"Don't communicate by sharing memory; share memory by communicating"_
 
@@ -73,7 +73,7 @@ ready producer on the other end of the channel.
 Communication happens synchronously. Both sender and receiver must be present
 until any operation is completed.
 
-This is great in scenarios where you want to properly synchronize operation of two components.
+This is great in scenarios where you want to properly **synchronize** operation of two components.
 ensuring one can only proceed if the other acknowledges them.
 
 ```python
@@ -255,10 +255,15 @@ async def main():
         (chan_b, chan_b.pull()),
         (chan_c, chan_c.pull())
     )
-
-    print(f"First completed: {chan=}, {value=}")
-    assert chan == chan_a
-    assert value == "item_a"
+    
+    if chan = chan_a:
+        print(f"{value} was received from chan a ")
+        
+    if chan = chan_b:
+        print(f"{value} was received from chan b ")
+        
+    if chan = chan_c:
+        print(f"{value} was received from chan c ")
 
 asyncio.run(main())
 
