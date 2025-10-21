@@ -1,7 +1,10 @@
+![docs screenshot](./docs/Screenshot.png)
+
+
 [![Run Tests](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/actions/workflows/test-and-lint.yml/badge.svg)](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/actions/workflows/test-and-lint.yml)
 [![Upload Python Package](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/actions/workflows/python-publish.yml)
 
-![docs screenshot](./docs/Screenshot.png)
+
 
 # Pychanasync
 
