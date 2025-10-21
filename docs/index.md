@@ -155,7 +155,7 @@ _The code above follows typical structure of asynchronous code in asyncio python
 we try to implement a simple producer which is a coroutine function that that
 loops and sends a message into a buffered channel. We have another coroutine
 function which continuously reads from the buffered channel until it is closed.
-Both coroutines are scheduled to run on the event-loop using asyncio.gather_
+Both coroutines are scheduled to run on the event-loop using `asyncio.gather`_
 
 **It’s clear how pychanasync makes this pattern easy to implement,  allowing coroutines to remain decoupled in their
 execution while still communicating seamlessly in a clean and concise way.**
@@ -164,6 +164,15 @@ One thing worth noting in this example is after the producer pushes the second i
 waits until the consumer pulls an item before continuing . it does this seamlessly by suspending and resuming
 on the event loop in a cooperative manner just as a task is supposed to behave . pychanasync does not get in
 the way of the event loop.
+
+
+You can find more practical code examples in the `pychanasync` [GitHub repository](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/tree/main/Examples/Rob-Pike-Talk).  
+It includes implementations of several concurrency patterns from [Rob Pike’s talk](https://youtu.be/f6kdp27TYZs). 
+
+These examples demonstrate how to model real-world coroutine coordination problems using `pychanasync`
+such as fan-in , Generator pattern  etc. Check it out.
+
+
 
 
 
@@ -202,7 +211,7 @@ async def producer(channel):
 ```
 When the `async-with` block exits, the channel is closed automatically.
 
-### Chanselect
+### chanselect
 The `chanselect` utility method allows you to start and wait on multiple channel operations simultaneously,
 returning the one that **completes first**.
 
@@ -215,7 +224,7 @@ The `chanselect` function takes **one or more tuples**, each containing a **chan
 It concurrently waits on all provided operations and 
 returns the first one to complete.
 
-The function returns a tuple depending on the type of operation that finshed first:
+The function returns a tuple depending on the type of operation that finished first:
 
 - For  `pull` operation, it returns (**channel, value**).
 - For `push` operation, it returns (**channel, None**).
@@ -279,7 +288,7 @@ chan_a
 
 ### Non-blocking channel operations
 
-pychanasync provides non blocking variants of `push` and `pull` on **buffered** channels.
+pychanasync provides non-blocking variants of `push` and `pull` on **buffered** channels.
 In this case , the coroutine will not block or suspend.
 
 These methods will raise exceptions when the operation cannot proceed immediately.
@@ -319,7 +328,7 @@ except ChannelEmpty:
 ## Channel closing behaviour
 
 Closing the channel signals that no more items can be sent to it or read from it.
-But what happens to already pending receive or send operaations depends
+But what happens to already pending receive or send operations depends
 on the type of channel.
 
 **Buffered channel**
@@ -385,7 +394,7 @@ Returns True if the channel is closed.
 
 To contribute or set up the project locally.
 
-find the project source code on [github](https://github.com/Gwali-1/PY_CHANNELS_ASYNC) 
+find the project source code on [GitHub](https://github.com/Gwali-1/PY_CHANNELS_ASYNC) 
 
 **Clone the project**
 
