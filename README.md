@@ -15,8 +15,8 @@ safe and deterministic communication patterns without blocking the event loop.
 
 Visit [documentation](https://gwali-1.github.io/PY_CHANNELS_ASYNC/) site for more details.
 
-
 ## Features
+
 - **Buffered and unbuffered channel semantics** - _use either synchronous or buffered communication_
 - **Async iteration over channels** - _Consume messages from a channel using `async for` loops._
 - **Context manager support** - _close channels and release resources when done with `async with`._
@@ -24,8 +24,6 @@ Visit [documentation](https://gwali-1.github.io/PY_CHANNELS_ASYNC/) site for mor
   for safe, cooperative communication._
 - **Non-blocking operations** - _`chan.push_nowait(value)` and `chan.pull_nowait()` for buffered channels when you don’t want to suspend._
 - **Select-like utility** - _wait on multiple channel operations concurrently, similar to Go’s select statement, in a clean and Pythonic way_
-
-
 
 ## Installation
 
@@ -39,9 +37,8 @@ pip install pychanasync
 
 Channels can be both **buffered** and **unbuffered**.
 
-
 **unbuffered** channels have no internal buffer capacity. What this means is
-every producer (`push`) will  block/suspend until there is a ready consumer on
+every producer (`push`) will block/suspend until there is a ready consumer on
 the other end of the channel (`pull`) and every consumer until there is a
 ready producer on the other end of the channel.
 
@@ -52,14 +49,14 @@ from pychanasync import channel
 ch = Channel()
 
 # send
-async ch.push("item") #blocks here 
+async ch.push("item") #blocks here
 
 # receive
 value = async ch.pull()
 
 ```
 
-**buffered** channels have an internal buffer capacity and can hold  (**N**)
+**buffered** channels have an internal buffer capacity and can hold (**N**)
 number of items at a time. When doing a `push` into a buffered channel, the
 operation will only block when the buffer is full and until there is available
 space to send the new item. Other than that the operation completes
@@ -79,7 +76,6 @@ async ch.push("item")
 value = async ch.pull()
 
 ```
-
 
 ### Async Iteration
 
@@ -112,10 +108,11 @@ async def producer(channel):
         print(f"Sent msg {i}")
 
 ```
+
 When the `async-with` block exits , the channel is closed automatically.
 
-
 ### Chanselect
+
 The `chanselect` utility method allows you to start and wait on multiple channel operations simultaneously,
 returning the one that completes first.
 
@@ -161,15 +158,11 @@ asyncio.run(main())
 
 ```
 
-
-
-
-
 ### Contributing
 
 To contribute or set up the project locally.
 
-find the project source code on [github](https://github.com/Gwali-1/PY_CHANNELS_ASYNC) 
+find the project source code on [github](https://github.com/Gwali-1/PY_CHANNELS_ASYNC)
 
 **Clone the project**
 
@@ -196,4 +189,7 @@ pipenv run pytest
 **Installing the package locally**
 From the project root
 
+```shell
+pip install -e .
 
+```
