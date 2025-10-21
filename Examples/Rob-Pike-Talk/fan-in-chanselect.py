@@ -47,7 +47,7 @@ async def fanin(input_1: Channel, input_2: Channel) -> Channel:
 
 async def main():
     chan = await fanin(await boring("Joe"), await boring("Ann"))
-    for _ in range(5):
+    for _ in range(10):
         val: Any = await chan.pull()
         print(val)
     print("your'e both boring. I'm leaving!")
