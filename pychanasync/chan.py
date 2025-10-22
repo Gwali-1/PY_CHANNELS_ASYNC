@@ -5,12 +5,6 @@ from typing import Any, Coroutine
 
 from pychanasync.errors import ChannelError, ChannelClosed, ChannelFull, ChannelEmpty
 
-# # --- Context manager ---
-# async def __aenter__(self):
-#     return self
-#
-# async def __aexit__(self, exc_type, exc, tb):
-
 
 class ProducerComponent:
     def __init__(self, producer: Future[Any], value: Any):
