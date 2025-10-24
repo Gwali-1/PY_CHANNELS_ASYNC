@@ -20,13 +20,13 @@ safe and deterministic communication patterns without blocking the event loop.
 
 _"Don't communicate by sharing memory; share memory by communicating"_
 
-
 ---
+
 The point was to implement a package tool that allow coroutines to exchange
 messages instead of going the shared mutable state and locks route.
 
-So if you are working on async program  in python which fits the producer-consumer pattern or
-need a  channel shaped solution, `pychanasync` is highly recommended.
+So if you are working on async program in python which fits the producer-consumer pattern or
+need a channel shaped solution, `pychanasync` is highly recommended.
 
 **It makes async programs cleaner and easy to reason about!**
 
@@ -66,7 +66,7 @@ pip install -e .
 Channels can be both **buffered** and **unbuffered**.
 
 **unbuffered** channels have no internal buffer capacity. What this means is
-every producer (`push`) will  block/suspend until there is a ready consumer on
+every producer (`push`) will block/suspend until there is a ready consumer on
 the other end of the channel (`pull`) and every consumer until there is a
 ready producer on the other end of the channel.
 
@@ -83,14 +83,14 @@ from pychanasync import channel
 ch = Channel()
 
 # send
-async ch.push("item") #blocks here 
+async ch.push("item") #blocks here
 
 # receive
 value = async ch.pull()
 
 ```
 
-**buffered** channels have an internal buffer capacity and can hold  (**N**)
+**buffered** channels have an internal buffer capacity and can hold (**N**)
 number of items at a time. When doing a `push` into a buffered channel, the
 operation will only block when the buffer is full and until there is available
 space to send the new item. Other than that the operation completes
@@ -140,7 +140,7 @@ async def consumer(ch):
         try:
             msg = await ch.pull()
             print(f"Received {msg}")
-        except Channel.Closed:
+        except ChannelClosed:
             break
 
 async def main():
@@ -157,7 +157,7 @@ loops and sends a message into a buffered channel. We have another coroutine
 function which continuously reads from the buffered channel until it is closed.
 Both coroutines are scheduled to run on the event-loop using `asyncio.gather`_
 
-**It’s clear how pychanasync makes this pattern easy to implement,  allowing coroutines to remain decoupled in their
+**It’s clear how pychanasync makes this pattern easy to implement, allowing coroutines to remain decoupled in their
 execution while still communicating seamlessly in a clean and concise way.**
 
 One thing worth noting in this example is after the producer pushes the second item , it
@@ -165,16 +165,11 @@ waits until the consumer pulls an item before continuing . it does this seamless
 on the event loop in a cooperative manner just as a task is supposed to behave . pychanasync does not get in
 the way of the event loop.
 
-
 You can find more practical code examples in the `pychanasync` [GitHub repository](https://github.com/Gwali-1/PY_CHANNELS_ASYNC/tree/main/Examples/Rob-Pike-Talk).  
-It includes implementations of several concurrency patterns from [Rob Pike’s talk](https://youtu.be/f6kdp27TYZs). 
+It includes implementations of several concurrency patterns from [Rob Pike’s talk](https://youtu.be/f6kdp27TYZs).
 
 These examples demonstrate how to model real-world coroutine coordination problems using `pychanasync`
-such as fan-in , Generator pattern  etc. Check it out.
-
-
-
-
+such as fan-in , Generator pattern etc. Check it out.
 
 ## Features
 
@@ -209,24 +204,25 @@ async def producer(channel):
         print(f"Sent msg {i}")
 
 ```
+
 When the `async-with` block exits, the channel is closed automatically.
 
 ### chanselect
+
 The `chanselect` utility method allows you to start and wait on multiple channel operations simultaneously,
 returning the one that **completes first**.
 
 It behaves similarly to Go’s [select](https://gobyexample.com/select) statement.
 
-
 The `chanselect` function takes **one or more tuples**, each containing a **channel** and a **channel operation**
-(such as `chan.push(value)` or `chan.pull()`). 
+(such as `chan.push(value)` or `chan.pull()`).
 
-It concurrently waits on all provided operations and 
+It concurrently waits on all provided operations and
 returns the first one to complete.
 
 The function returns a tuple depending on the type of operation that finished first:
 
-- For  `pull` operation, it returns (**channel, value**).
+- For `pull` operation, it returns (**channel, value**).
 - For `push` operation, it returns (**channel, None**).
 
 **synthax**
@@ -264,13 +260,13 @@ async def main():
         (chan_b, chan_b.pull()),
         (chan_c, chan_c.pull())
     )
-    
+
     if chan = chan_a:
         print(f"{value} was received from chan a ")
-        
+
     if chan = chan_b:
         print(f"{value} was received from chan b ")
-        
+
     if chan = chan_c:
         print(f"{value} was received from chan c ")
 
@@ -280,11 +276,8 @@ asyncio.run(main())
 
 In the example above 3 channels are created and populated at different times.
 The `chanselect` call waits for the first available value among the three.
-It returns as soon as the first pull operation succeed which in this case is 
+It returns as soon as the first pull operation succeed which in this case is
 chan_a
-
-
-
 
 ### Non-blocking channel operations
 
@@ -394,7 +387,7 @@ Returns True if the channel is closed.
 
 To contribute or set up the project locally.
 
-find the project source code on [GitHub](https://github.com/Gwali-1/PY_CHANNELS_ASYNC) 
+find the project source code on [GitHub](https://github.com/Gwali-1/PY_CHANNELS_ASYNC)
 
 **Clone the project**
 
