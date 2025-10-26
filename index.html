@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-terminal-4.7.0">
+     
+     
+    
+    <link rel="canonical" href="https://gwali-1.github.io/PY_CHANNELS_ASYNC/"><link rel="icon" type="image/png" sizes="192x192" href="img/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="img/android-chrome-512x512.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+<link rel="shortcut icon" type="image/png" sizes="48x48" href="img/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png" />
+
+
+    
+ 
+<title>Home - Pychanasync Docs</title>
+
+
+<link href="css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+<link href="css/fontawesome/css/solid.min.css" rel="stylesheet">
+<link href="css/normalize.css" rel="stylesheet">
+<link href="css/terminal.css" rel="stylesheet">
+<link href="css/theme.css" rel="stylesheet">
+<link href="css/theme.tile_grid.css" rel="stylesheet">
+<link href="css/theme.footer.css" rel="stylesheet">
+<!-- default color palette -->
+<link href="css/palettes/default.css" rel="stylesheet">
+
+<!-- page layout -->
+<style>
+/* initially set page layout to a one column grid */
+.terminal-mkdocs-main-grid {
+    display: grid;
+    grid-column-gap: 1.4em;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+/*  
+*   when side navigation is not hidden, use a two column grid.  
+*   if the screen is too narrow, fall back to the initial one column grid layout.
+*   in this case the main content will be placed under the navigation panel. 
+*/
+@media only screen and (min-width: 70em) {
+    .terminal-mkdocs-main-grid {
+        grid-template-columns: 4fr 9fr;
+    }
+}</style>
+
+
+
+    
+    <link href="styles/extra.css" rel="stylesheet">  
+    
+    
+
+    
+    <!-- search css support -->
+<link href="css/search/bootstrap-modal.css" rel="stylesheet">
+<!-- search scripts -->
+<script>
+    var base_url = ".",
+    shortcuts = "{}";
+</script>
+<script src="js/jquery/jquery-1.10.1.min.js" defer></script>
+<script src="js/bootstrap/bootstrap.min.js" defer></script>
+<script src="js/mkdocs/base.js" defer></script>
+    
+    
+    
+    
+    <script src="search/main.js"></script>
+    
+
+    
+</head>
+
+<body class="terminal"><div class="container">
+    <div class="terminal-nav">
+        <header class="terminal-logo">
+            <div id="mkdocs-terminal-site-name" class="logo terminal-prompt"><a href="https://gwali-1.github.io/PY_CHANNELS_ASYNC/" class="no-style">Pychanasync Docs</a></div>
+        </header>
+        
+        <nav class="terminal-menu">
+            
+        </nav>
+    </div>
+</div>
+        
+    <div class="container">
+        <div class="terminal-mkdocs-main-grid"><aside id="terminal-mkdocs-side-panel"><nav>
+  
+</nav><hr>
+<nav>
+    <ul>
+        <li><a href="#pychanasync">pychanasync</a></li>
+        <li><a href="#installation">Installation</a></li><li><a href="#quickstart">Quickstart</a></li><li><a href="#basic-consumer-producer-example">Basic consumer-producer example</a></li><li><a href="#features">Features</a></li><li><a href="#channel-closing-behaviour">Channel closing behaviour</a></li><li><a href="#api-reference">API Reference</a></li>
+    </ul>
+</nav>
+</aside>
+            <main id="terminal-mkdocs-main-content">
+<section id="mkdocs-terminal-content">
+    <h1 id="pychanasync">pychanasync</h1>
+<p><code>pychanasync</code> is a lightweight python package which brings <em>Go-style</em> channels to
+python's <em>asyncio</em> concurrency world. It is an async-channel implementation,
+providing a channel shaped tool for channel shaped problems.</p>
+<p>It allows for safe, easy and efficient communication between <strong>coroutines</strong>
+scheduled on the asyncio event loop by providing a medium through which items/messages
+can be pushed into from one end and pulled from the other sequentially as opposed to
+sharing memory.</p>
+<p><code>pychanasync</code> is implemented entirely around pythons asyncio event loop.
+The implementation is <strong>lock free</strong> ,taking advantage of the <em>single threaded
+cooperative</em> concurrency model.</p>
+<p>It is designed and implemented to work with coroutines and <strong>not threads</strong>, providing
+safe and deterministic communication patterns without blocking the event loop.</p>
+<p><code>pychanasync</code> is built on the idea;</p>
+<p><em>"Don't communicate by sharing memory; share memory by communicating"</em></p>
+<hr />
+<p>The point was to implement a package tool that allow coroutines to exchange
+messages instead of going the shared mutable state and locks route.</p>
+<p>So if you are working on async program in python which fits the producer-consumer pattern or
+need a channel shaped solution, <code>pychanasync</code> is highly recommended.</p>
+<p><strong>It makes async programs cleaner and easy to reason about!</strong></p>
+<hr />
+<p>As mentioned , pychanasync is inspired by channels in <a href="https://go101.org/article/channel.html">Go</a>
+but blends it with Pythonic conventions. It provides clean, high level abstractions to pass messages
+between coroutines/tasks and other features that feel naturally python.</p>
+<ul>
+<li><strong>Buffered and unbuffered channel semantics</strong> - <em>use either synchronous or buffered communication</em></li>
+<li><strong>Async iteration over channels</strong> - <em>Consume messages from a channel using <code>async for</code> loops.</em></li>
+<li><strong>Context manager support</strong> - <em>close channels and release resources when done with <code>async with</code>.</em></li>
+<li><strong>Blocking/ awaitable operations</strong> - <em><code>await chan.push(value)</code> and <code>await chan.pull()</code>
+  for safe, cooperative communication.</em></li>
+<li><strong>Non-blocking operations</strong> - <em><code>chan.push_nowait(value)</code> and <code>chan.pull_nowait()</code> for buffered channels when you don’t want to suspend.</em></li>
+<li><strong>Select-like utility</strong> - <em>wait on multiple channel operations concurrently, similar to Go’s select statement, in a clean and Pythonic way</em></li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>pychanasync is available on <a href="https://pypi.org/project/pychanasync/">PyPi</a></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>pychanasync
+</code></pre></div>
+<p>or you can install it from source</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>git<span style="color: #BBB"> </span>clone<span style="color: #BBB"> </span>https://github.com/Gwali-1/PY_CHANNELS_ASYNC
+<span style="color: #008000">cd</span><span style="color: #BBB"> </span>PY_CHANNELS_ASYNC
+pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
+</code></pre></div>
+<h2 id="quickstart">Quickstart</h2>
+<p>Channels can be both <strong>buffered</strong> and <strong>unbuffered</strong>.</p>
+<p><strong>unbuffered</strong> channels have no internal buffer capacity. What this means is
+every producer (<code>push</code>) will block/suspend until there is a ready consumer on
+the other end of the channel (<code>pull</code>) and every consumer until there is a
+ready producer on the other end of the channel.</p>
+<p>Communication happens synchronously. Both sender and receiver must be present
+until any operation is completed.</p>
+<p>This is great in scenarios where you want to properly <strong>synchronize</strong> operation of two components.
+ensuring one can only proceed if the other acknowledges them.</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #00F; font-weight: bold">pychanasync</span><span style="color: #BBB"> </span><span style="color: #008000; font-weight: bold">import</span> channel
+
+<span style="color: #3D7B7B; font-style: italic">#create unbuffered channel</span>
+ch <span style="color: #666">=</span> Channel()
+
+<span style="color: #3D7B7B; font-style: italic"># send</span>
+<span style="color: #008000; font-weight: bold">async</span> ch<span style="color: #666">.</span>push(<span style="color: #BA2121">&quot;item&quot;</span>) <span style="color: #3D7B7B; font-style: italic">#blocks here</span>
+
+<span style="color: #3D7B7B; font-style: italic"># receive</span>
+value <span style="color: #666">=</span> <span style="color: #008000; font-weight: bold">async</span> ch<span style="color: #666">.</span>pull()
+</code></pre></div>
+<p><strong>buffered</strong> channels have an internal buffer capacity and can hold (<strong>N</strong>)
+number of items at a time. When doing a <code>push</code> into a buffered channel, the
+operation will only block when the buffer is full and until there is available
+space to send the new item. Other than that the operation completes
+and returns quickly.</p>
+<p>On the other hand when you pull from a buffered channel , the operation will
+only block or be suspended when the buffer is empty, until there are items
+available in the buffer. Other than that the operation completes and returns and item
+from the channel quickly.</p>
+<p>Here, unlike <strong>unbuffered</strong> channels , both senders and receivers don't have to be in sync. The communication
+is asynchronous up to the buffers capacity limit (<strong>N</strong>).</p>
+<p>This is great in scenarios for example when you want a smooth outburst of work, decoupling producer
+and consumer speed.</p>
+<p>Below is a buffered channel that can hold 300 items at a time.</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #00F; font-weight: bold">pychanasync</span><span style="color: #BBB"> </span><span style="color: #008000; font-weight: bold">import</span> channel
+
+ch <span style="color: #666">=</span> Channel(buffer<span style="color: #666">=300</span>)
+
+<span style="color: #3D7B7B; font-style: italic"># send</span>
+<span style="color: #008000; font-weight: bold">async</span> ch<span style="color: #666">.</span>push(<span style="color: #BA2121">&quot;item&quot;</span>)
+
+<span style="color: #3D7B7B; font-style: italic"># receive</span>
+value <span style="color: #666">=</span> <span style="color: #008000; font-weight: bold">async</span> ch<span style="color: #666">.</span>pull()
+</code></pre></div>
+<h2 id="basic-consumer-producer-example">Basic consumer-producer example</h2>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #00F; font-weight: bold">asyncio</span>
+<span style="color: #008000; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #00F; font-weight: bold">pychanasync</span><span style="color: #BBB"> </span><span style="color: #008000; font-weight: bold">import</span> Channel
+
+<span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">producer</span>(ch):
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #A2F; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666">3</span>):
+        <span style="color: #008000; font-weight: bold">await</span> ch<span style="color: #666">.</span>push(<span style="color: #BA2121">f&quot;msg </span><span style="color: #A45A77; font-weight: bold">{</span>i<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sent msg </span><span style="color: #A45A77; font-weight: bold">{</span>i<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+    ch<span style="color: #666">.</span>close()  <span style="color: #3D7B7B; font-style: italic"># gracefully close when done</span>
+
+<span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">consumer</span>(ch):
+    <span style="color: #008000; font-weight: bold">while</span> <span style="color: #008000; font-weight: bold">True</span>:
+        <span style="color: #008000; font-weight: bold">try</span>:
+            msg <span style="color: #666">=</span> <span style="color: #008000; font-weight: bold">await</span> ch<span style="color: #666">.</span>pull()
+            <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Received </span><span style="color: #A45A77; font-weight: bold">{</span>msg<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+        <span style="color: #008000; font-weight: bold">except</span> ChannelClosed:
+            <span style="color: #008000; font-weight: bold">break</span>
+
+<span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">main</span>():
+    ch <span style="color: #666">=</span> Channel(buffer<span style="color: #666">=2</span>)
+    <span style="color: #008000; font-weight: bold">await</span> asyncio<span style="color: #666">.</span>gather(producer(ch), consumer(ch))
+
+asyncio<span style="color: #666">.</span>run(main())
+</code></pre></div>
+<p><em>The code above follows typical structure of asynchronous code in asyncio python. Here
+we try to implement a simple producer which is a coroutine function that that
+loops and sends a message into a buffered channel. We have another coroutine
+function which continuously reads from the buffered channel until it is closed.
+Both coroutines are scheduled to run on the event-loop using <code>asyncio.gather</code></em></p>
+<p><strong>It’s clear how pychanasync makes this pattern easy to implement, allowing coroutines to remain decoupled in their
+execution while still communicating seamlessly in a clean and concise way.</strong></p>
+<p>One thing worth noting in this example is after the producer pushes the second item , it
+waits until the consumer pulls an item before continuing . it does this seamlessly by suspending and resuming
+on the event loop in a cooperative manner just as a task is supposed to behave . pychanasync does not get in
+the way of the event loop.</p>
+<p>You can find more practical code examples in the <code>pychanasync</code> <a href="https://github.com/Gwali-1/PY_CHANNELS_ASYNC/tree/main/Examples/Rob-Pike-Talk">GitHub repository</a>.<br />
+It includes implementations of several concurrency patterns from <a href="https://youtu.be/f6kdp27TYZs">Rob Pike’s talk</a>.</p>
+<p>These examples demonstrate how to model real-world coroutine coordination problems using <code>pychanasync</code>
+such as fan-in , Generator pattern etc. Check it out.</p>
+<h2 id="features">Features</h2>
+<h3 id="async-iteration">Async Iteration</h3>
+<p>pychanasync supports async iteration, allowing you to consume items from a channel
+in a clean way using <code>async for</code> loop.</p>
+<p>We can rewrite our consumer above as</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">consumer</span>(ch):
+    <span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">for</span> msg <span style="color: #A2F; font-weight: bold">in</span> ch:
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Received: </span><span style="color: #A45A77; font-weight: bold">{</span>msg<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+</code></pre></div>
+<p>Once the producer closes the channel, the iteration ends .</p>
+<h3 id="context-manager-support">Context manager support</h3>
+<p>pychanasync has support for asynchronous context managers for automatic cleanup.</p>
+<p>We can rewrite out producer component as</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">producer</span>(channel):
+  <span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">with</span> channel  <span style="color: #008000; font-weight: bold">as</span> ch:
+    <span style="color: #008000; font-weight: bold">for</span> i <span style="color: #A2F; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666">3</span>):
+        <span style="color: #008000; font-weight: bold">await</span> ch<span style="color: #666">.</span>push(<span style="color: #BA2121">f&quot;msg </span><span style="color: #A45A77; font-weight: bold">{</span>i<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;Sent msg </span><span style="color: #A45A77; font-weight: bold">{</span>i<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121">&quot;</span>)
+</code></pre></div>
+<p>When the <code>async-with</code> block exits, the channel is closed automatically.</p>
+<h3 id="chanselect">chanselect</h3>
+<p>The <code>chanselect</code> utility method allows you to start and wait on multiple channel operations simultaneously,
+returning the one that <strong>completes first</strong>.</p>
+<p>It behaves similarly to Go’s <a href="https://gobyexample.com/select">select</a> statement.</p>
+<p>The <code>chanselect</code> function takes <strong>one or more tuples</strong>, each containing a <strong>channel</strong> and a <strong>channel operation</strong>
+(such as <code>chan.push(value)</code> or <code>chan.pull()</code>).</p>
+<p>It concurrently waits on all provided operations and
+returns the first one to complete.</p>
+<p>The function returns a tuple depending on the type of operation that finished first:</p>
+<ul>
+<li>For <code>pull</code> operation, it returns (<strong>channel, value</strong>).</li>
+<li>For <code>push</code> operation, it returns (<strong>channel, None</strong>).</li>
+</ul>
+<p><strong>synthax</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>    chan, value <span style="color: #666">=</span> <span style="color: #008000; font-weight: bold">await</span> chanselect(
+        (chan_a, chan_a<span style="color: #666">.</span>pull()),
+        (chan_b, chan_b<span style="color: #666">.</span>pull())
+    )
+</code></pre></div>
+<p><strong>Example</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">import</span><span style="color: #BBB"> </span><span style="color: #00F; font-weight: bold">asyncio</span>
+<span style="color: #008000; font-weight: bold">from</span><span style="color: #BBB"> </span><span style="color: #00F; font-weight: bold">pychanasync</span><span style="color: #BBB"> </span><span style="color: #008000; font-weight: bold">import</span> Channel, chanselect
+
+<span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">wait_and_push</span>(chan, delay, item):
+    <span style="color: #008000; font-weight: bold">await</span> asyncio<span style="color: #666">.</span>sleep(delay)
+    <span style="color: #008000; font-weight: bold">await</span> chan<span style="color: #666">.</span>push(item)
+
+<span style="color: #008000; font-weight: bold">async</span> <span style="color: #008000; font-weight: bold">def</span><span style="color: #BBB"> </span><span style="color: #00F">main</span>():
+    chan_a <span style="color: #666">=</span> Channel(bound<span style="color: #666">=2</span>)
+    chan_b <span style="color: #666">=</span> Channel(bound<span style="color: #666">=2</span>)
+    chan_c <span style="color: #666">=</span> Channel(bound<span style="color: #666">=2</span>)
+
+    asyncio<span style="color: #666">.</span>create_task(wait_and_push(chan_a, <span style="color: #666">0.01</span>, <span style="color: #BA2121">&quot;item_a&quot;</span>))
+    asyncio<span style="color: #666">.</span>create_task(wait_and_push(chan_b, <span style="color: #666">0.05</span>, <span style="color: #BA2121">&quot;item_b&quot;</span>))
+    asyncio<span style="color: #666">.</span>create_task(wait_and_push(chan_c, <span style="color: #666">0.02</span>, <span style="color: #BA2121">&quot;item_c&quot;</span>))
+
+    chan, value <span style="color: #666">=</span> <span style="color: #008000; font-weight: bold">await</span> chanselect(
+        (chan_a, chan_a<span style="color: #666">.</span>pull()),
+        (chan_b, chan_b<span style="color: #666">.</span>pull()),
+        (chan_c, chan_c<span style="color: #666">.</span>pull())
+    )
+
+    <span style="color: #008000; font-weight: bold">if</span> chan <span style="color: #666">=</span> chan_a:
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;</span><span style="color: #A45A77; font-weight: bold">{</span>value<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121"> was received from chan a &quot;</span>)
+
+    <span style="color: #008000; font-weight: bold">if</span> chan <span style="color: #666">=</span> chan_b:
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;</span><span style="color: #A45A77; font-weight: bold">{</span>value<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121"> was received from chan b &quot;</span>)
+
+    <span style="color: #008000; font-weight: bold">if</span> chan <span style="color: #666">=</span> chan_c:
+        <span style="color: #008000">print</span>(<span style="color: #BA2121">f&quot;</span><span style="color: #A45A77; font-weight: bold">{</span>value<span style="color: #A45A77; font-weight: bold">}</span><span style="color: #BA2121"> was received from chan c &quot;</span>)
+
+asyncio<span style="color: #666">.</span>run(main())
+</code></pre></div>
+<p>In the example above 3 channels are created and populated at different times.
+The <code>chanselect</code> call waits for the first available value among the three.
+It returns as soon as the first pull operation succeed which in this case is
+chan_a</p>
+<h3 id="non-blocking-channel-operations">Non-blocking channel operations</h3>
+<p>pychanasync provides non-blocking variants of <code>push</code> and <code>pull</code> on <strong>buffered</strong> channels.
+In this case , the coroutine will not block or suspend.</p>
+<p>These methods will raise exceptions when the operation cannot proceed immediately.</p>
+<p>When you try to send an item with <code>push_nowait</code> into a buffered channel which is
+full, it raises a <code>ChannelFull</code> exception.</p>
+<p>When you try to pull an item with <code>push_nowait</code> from a buffered channel which is
+empty, it raises a <code>ChannelEmpty</code> exception.</p>
+<p><strong>push_nowait</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>ch <span style="color: #666">=</span> Channel(bound<span style="color: #666">=2</span>)
+
+ch<span style="color: #666">.</span>push_nowait(<span style="color: #BA2121">&quot;A&quot;</span>)
+ch<span style="color: #666">.</span>push_nowait(<span style="color: #BA2121">&quot;B&quot;</span>)
+
+<span style="color: #008000; font-weight: bold">try</span>:
+    ch<span style="color: #666">.</span>push_nowait(<span style="color: #BA2121">&quot;C&quot;</span>)
+<span style="color: #008000; font-weight: bold">except</span> ChannelFull:
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Buffer is full — could not push!&quot;</span>)
+</code></pre></div>
+<p><strong>pull_nowait</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000; font-weight: bold">try</span>:
+    value <span style="color: #666">=</span> ch<span style="color: #666">.</span>pull_nowait()
+<span style="color: #008000; font-weight: bold">except</span> ChannelEmpty:
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;Buffer is empty — nothing to receive.&quot;</span>)
+</code></pre></div>
+<h2 id="channel-closing-behaviour">Channel closing behaviour</h2>
+<p>Closing the channel signals that no more items can be sent to it or read from it.
+But what happens to already pending receive or send operations depends
+on the type of channel.</p>
+<p><strong>Buffered channel</strong></p>
+<p>When you close a buffered channel, the internal buffer is drained. Any pending
+readers will receive the items in the buffer at the time of closing. Once the buffer
+is empty and there are more pending readers , They are woken up/terminated with
+a <code>ChannelClosed</code> exceptions.</p>
+<p>Also, all pending senders , thus those waiting to push into the channel but the buffer
+was full are terminated with a <code>ChannelClosed</code> exception.</p>
+<p>After closing, no new send or receive operations are allowed. Any attempt raises <code>ChannelClosed</code>.</p>
+<p><strong>unbuffered channel</strong></p>
+<p>For unbuffered channels ie those without a bound , closing the channel
+immediately terminates all pending senders and receivers with a <code>ChannelClosed</code></p>
+<p>Because there’s no buffer to drain, no additional values are delivered after closing.</p>
+<p>And as with buffered channels , no further operations can be performed after channel's closure.</p>
+<h2 id="api-reference">API Reference</h2>
+<h4 id="await-chpushval">await ch.push(val)</h4>
+<p>Will suspend until item can be sent (or buffer space is available)</p>
+<h4 id="await-chpull">await ch.pull()</h4>
+<p>Will suspend until value is available to be read.</p>
+<h4 id="chpush_nowaitval">ch.push_nowait(val)</h4>
+<p>Raises exception if buffer is full (<strong>only for buffered channels</strong>)</p>
+<h4 id="chpull_nowaitval">ch.pull_nowait(val)</h4>
+<p>Raises exception if buffer is empty (<strong>only for buffered channels</strong>)</p>
+<h4 id="chclose">ch.close()</h4>
+<p>Closes the channel and wakes up all waiting tasks/coroutines with pending channel operations.</p>
+<h4 id="chcsize">ch.csize()</h4>
+<p>Return the number of items in the channel(None for unbuffered).</p>
+<h4 id="chfull">ch.full()</h4>
+<p>Returns True if there are maxsize items in the channel.</p>
+<h4 id="chempty">ch.empty()</h4>
+<p>Returns True if the channel is empty, False otherwise.</p>
+<h4 id="chclosed">ch.closed</h4>
+<p>Returns True if the channel is closed.</p>
+<h3 id="contributing">Contributing</h3>
+<p>To contribute or set up the project locally.</p>
+<p>find the project source code on <a href="https://github.com/Gwali-1/PY_CHANNELS_ASYNC">GitHub</a></p>
+<p><strong>Clone the project</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>git<span style="color: #BBB"> </span>clone<span style="color: #BBB"> </span>https://github.com/Gwali-1/PY_CHANNELS_ASYNC
+<span style="color: #008000">cd</span><span style="color: #BBB"> </span>PY_CHANNELS_ASYNC
+</code></pre></div>
+<p><strong>Install dependencies</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>pipenv<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>--dev
+</code></pre></div>
+<p><strong>Running tests</strong>
+From the project root</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>pipenv<span style="color: #BBB"> </span>run<span style="color: #BBB"> </span>pytest
+</code></pre></div>
+<p><strong>Installing the package locally</strong>
+From the project root</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><code>pip<span style="color: #BBB"> </span>install<span style="color: #BBB"> </span>-e<span style="color: #BBB"> </span>.
+</code></pre></div>
+</section>
+
+            </main>
+        </div>
+        <hr><footer>
+    <div class="terminal-mkdocs-footer-grid">
+        <div id="terminal-mkdocs-footer-copyright-info">
+             Site built with <a href="http://www.mkdocs.org">MkDocs</a> and <a href="https://github.com/ntno/mkdocs-terminal">Terminal for MkDocs</a>.
+        </div>
+    </div>
+</footer>
+    </div>
+
+    
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="searchModalLabel">
+    <div class="modal-dialog modal-lg" role="search">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search</h5>
+                <button type="button" class="close btn btn-default btn-ghost" data-dismiss="modal"><span aria-hidden="true">x</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p id="searchInputLabel">Type to start searching</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" aria-labelledby="searchInputLabel" placeholder="" id="mkdocs-search-query" title="Please enter search terms here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No document matches found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</body>
+
+</html>
